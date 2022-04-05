@@ -1,8 +1,8 @@
-frontend-nanodegree-arcade-game
+Operator Position Simulator
 ===============================
 
 
-The goal of the game is to cross the street and get to the water. If you make it your score points increases but, be careful bugs can stop you and if they do three times the game is over. Dont worry, you can play as many times as you want by hittin on "try again".
+The goal of the game is to complete a set of task. If you make it your score points increases but, be careful mistakes can stop you and if they do three times the game is over. Dont worry, you can play as many times as you want by hittin on "try again".
 
 =
 How to Start the game:
@@ -13,7 +13,7 @@ How to Start the game:
 =
 Game controls:
 
--Use the up,down,left and right keys to move the character along the screen.
+-Use the mouse and up,down,left and right keys to move along the screen.
 
 -Click over the "try again" button after game is over to retry.
 
