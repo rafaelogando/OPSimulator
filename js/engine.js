@@ -195,7 +195,7 @@ var Engine = (function(global) {
 
         Over();
        
-        ctx.drawImage(Resources.get('images/tspBase.png'),0,0);
+        ctx.drawImage(Resources.get('./images/tspBase.png'),0,0);
         ctx.drawImage(Resources.get(TSP.PTTSRC),0,600);
 
         //Draw Radio Channels
@@ -262,7 +262,7 @@ var Engine = (function(global) {
      * all of these images are properly loaded our game will start.
      */
     Resources.load([
-        'images/tspBase.png',
+        './images/tspBase.png',
         'images/ptt.png',
         'images/speakeron.png',
         'images/speakeroff.png',
