@@ -434,7 +434,7 @@ var Engine = (function(global) {
         TSP.reset();
     }
 
-
+/*
         function setRadioChannels() {
         allEntities.forEach(function(radioChannel) {
             for (var rows = TSP.radioRows - 1; rows >= 0; rows--) {
@@ -448,6 +448,7 @@ var Engine = (function(global) {
             }
         });
     }
+    */
 
     /* Go ahead and load all of the images we know we're going to need to
      * draw our game level. Then set init as the callback method, so that when
