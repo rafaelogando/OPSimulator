@@ -9,9 +9,9 @@ var handle=false;
 
 // Entities our TSP must avoid
 var radioChannel = function(row, col) {
-    this.PTT = false;
-    this.y=0;
-    this.x=0;
+    this.multiple = false;
+    this.selected = false;
+    this.onuse = false;
     this.row = row;
     this.col = col;
     this.speed = 100;
@@ -19,11 +19,12 @@ var radioChannel = function(row, col) {
     this.sprite = 'images/radioElement.png';
     this.elementsToAdd = {
         volume:{src:'images/radioVolume4.png',positionx:5,positiony:25},
-        frecuency:{name:"Radio",src:'',positionx:50,positiony:20},
-        hollow:{name:"hollowArrow",src:'images/uparrow.png',positionx:80,positiony:30}
+        frecuency:{name:110+ row+col+" LON",src:'',positionx:50,positiony:20},
+        arrow:{name:"arrow",src:'images/uparrow.png',positionx:80,positiony:30,src2:'images/uphollow.png'},
+        multiple:{name:"arrow",src:'images/multiple.png',positionx:121,positiony:25}
     };
     this.vol = 4;
-    this.frecuency = "Radio";
+    this.frecuency = 110 +row+col*4+" LON";
 };
 
 
@@ -75,26 +76,28 @@ radioChannel.prototype.grab = function() {
 
 //BUTTON
 var Button = function(name) {
+    this.name = name.name;
+    this.row = name.row;
+    this.col = name.col;
     this.pressed = false;
+    this.visible = true;
     this.y=0;
     this.x=0;
-    this.row = name.col;
-    this.col = name.row;
     this.blink = false;
-    this.on = 'images/'+name.name+'off.png';
-    this.off = 'images/'+name.name+'off.png';
+    this.on = 'images/'+name.name+'on.png';
+    this.off = 'images/'+name.name+'.png';
     this.sprite = 'images/'+name.name+'.png';
-    this.name = name.name;
 };
 
 Button.prototype.render = function() 
 {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    ctx.drawImage(Resources.get(this.sprite), this.col*66, this.row*66);
 };
 
 
 // Ower hero/es class.
 var MAINSCREEN = function() {
+    this.extrafunc = false;
     this.loudSpeaker = true;
     this.loudSpeakerSrc ='images/speakeron.png';
     this.radioColums = 2;
@@ -107,6 +110,7 @@ var MAINSCREEN = function() {
     this.charpic = 'images/char-boy.png';
     this.chardead = 'images/dead.png';
     this.PTTSRC = 'images/ptt.png';
+    this.PTT = false;
 };
 
 //Check user inputs to set TSP MAINSCREEN position.
@@ -176,7 +180,6 @@ MAINSCREEN.prototype.render = function() {
 
 
 var TSP = new MAINSCREEN();
-var allEntities=[];
 var allElements =[{radioChannels:[]}];
 
     for (var i = 0; i < TSP.radioRows; i++) {
@@ -185,9 +188,16 @@ var allElements =[{radioChannels:[]}];
     }
 
 
-var allButtons = [];
+var allButtons = [{buttons:[]}];
 var buttons = 
 [
+{name:"VOLPAD", col:4, row:0},
+{name:"SELECTROLE", col:11, row:0},
+{name:"DIALPAD", col:11, row:6},
+{name:"LOUDSPEAKER", col:0, row:8},
+{name:"FREQLOCK", col:1, row:8},
+{name:"COUPLE", col:2, row:8},
+{name:"ONCHANNEL", col:3, row:8},
 {name:"DA", col:4, row:7},
 {name:"REPLAY", col:5, row:7},
 {name:"CHIME", col:6, row:7},
@@ -202,24 +212,12 @@ var buttons =
 {name:"EXTRAFUNC", col:7, row:8},
 {name:"HOLD", col:8, row:8},
 {name:"XFER", col:9, row:8},
-{name:"CONF", col:10, row:8},
-{name:"CHIMEMULT", col:6, row:7},
-{name:"RADCONN", col:7, row:7},
-{name:"CROSSCONN", col:8, row:7},
-{name:"TELCONN", col:9, row:7},
-{name:"CALLPICKUP", col:10, row:7},
-{name:"MAINSTB", col:5, row:8},
-{name:"VOLLEFT", col:6, row:8},
-{name:"VOLRIGHT", col:7, row:8},
-{name:"ROLEID", col:9, row:8},
-{name:"CHIMETEST", col:10, row:8},
-{name:"SELECTROLE", col:12, row:0},
-{name:"CALLERQUEE", col:12, row:1},
-{name:"DIALPAD", col:12, row:6}];
+{name:"CONF", col:10, row:8}
+];
 
     function createAllButtons(){
         buttons.forEach(function(button) {
-            allButtons.push(new Button(button));
+            allButtons[0].buttons.push(new Button(button));
         });
     }
     
