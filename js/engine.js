@@ -37,32 +37,69 @@ var Engine = (function(global) {
             return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
         }
 
-        //CLICK
-        //checks if the "try again" button has been clicked and completely 
-        //restar the app if so. This button only appears after a mistake is make.
-        canvas.addEventListener("click",function(event)
-            {
-                var mouse = getMousePos(canvas,event);
-                var col = (mouse.x - mouse.x%65)/65;
-                var row =  (mouse.y - mouse.y%65)/65;
+    //CLICK
+    //checks if the "try again" button has been clicked and completely 
+    //restar the app if so. This button only appears after a mistake is make.
+    canvas.addEventListener("click",function(event)
+    {
+        var mouse = getMousePos(canvas,event);
+        var col = (mouse.x - mouse.x%65)/65;
+        var row =  (mouse.y - mouse.y%65)/65;
+        if(col == 11 && row == 8){row = 7}
             
-                
-                checkIfRadioPress(row, col);
-                checkIfPtt(row, col);
-                checkIfLoudSpeaker(row,col);
+        
+        console.log( "columna: " + col + " fila: " + row);
+        checkIfRadioPress(row, col);
+        checkIfPtt(row, col);
+        checkIfButtons(row, col);
 
+        if(gameOver&&getMousePos(canvas,event).x > 312 && getMousePos(canvas,event).x < 488 && getMousePos(canvas,event).y > 403 && getMousePos(canvas,event).y < 463)
+        {
+            console.log("you made a mistake");
+        } 
+    });
 
-            if(gameOver&&getMousePos(canvas,event).x > 312 && getMousePos(canvas,event).x < 488 && getMousePos(canvas,event).y > 403 && getMousePos(canvas,event).y < 463)
-            {
-                console.log("you made a mistake");
-            } 
-        }
-        );
     doc.body.appendChild(canvas);
 
+    //CLOCK
+    var d;
+    var str;
+    function getClock(){
+    
+        d = new Date();
+        str = Calculate(d.getHours(), d.getMinutes(), d.getSeconds());
+    
+        //context = clock.getContext("2d");
+        ctx.clearRect(600, 300, 500, 200);
+        ctx.font = "40pt calibri";
+        ctx.fillStyle = "white";
+        ctx.fillText(str, 600, 300);
+    }
+
+    function Calculate(hour, min, sec){
+        var curTime;
+        hour = hour-4;
+        if(hour < 10)
+        curTime = "0"+hour.toString();
+        else
+        curTime = hour.toString();
+
+        if(min < 10)
+        curTime += ":0"+min.toString();
+        else
+        curTime += ":"+min.toString();
+
+        if(sec < 10)
+        curTime += ":0"+sec.toString();
+        else
+        curTime += ":"+sec.toString();
+        return curTime;
+    }
+
+
+    //RADIOS
     function checkIfRadioPress(row, col){
         var radios = allElements[0].radioChannels;
-                console.log( "columna: " + col + " fila: " + row);
                 if(col < 4 && row > 0 && row < 8){
                     console.log("Radio clicked");
 
@@ -71,7 +108,7 @@ var Engine = (function(global) {
                         //row-1 because starts at row 1 instead of row 0
                         if(radioChannel.col == col && radioChannel.row == row-1){
                             console.log("matchRX");
-                            radioChannel.PTT = false;
+                            radioChannel.selected = false;
                             if (radioChannel.sprite == 'images/BASERX.png') {radioChannel.sprite = 'images/radioElement.png' }
                                 else{radioChannel.sprite = 'images/BASERX.png';}
                             
@@ -79,7 +116,7 @@ var Engine = (function(global) {
                         if(radioChannel.col == col-1 && radioChannel.row == row-1){
                             console.log("matchTX");
                             radioChannel.sprite = 'images/BASETX.png';
-                            radioChannel.PTT = true;
+                            radioChannel.selected = true;
                         }   
                 });
             }
@@ -101,14 +138,75 @@ var Engine = (function(global) {
     //SPEAKER
     function checkIfLoudSpeaker(row, col){
 
-    var radios = allElements[0].radioChannels;
-    if(col == 0 && row == 8 ){
-        if(TSP.loudSpeaker == true){
-            TSP.loudSpeaker = false;
-            TSP.loudSpeakerSrc ='images/speakeroff.png';
-        }else{TSP.loudSpeakerSrc ='images/speakeron.png';TSP.loudSpeaker = true;}
+        var radios = allElements[0].radioChannels;
+        if(col == 0 && row == 8 ){
+            if(TSP.loudSpeaker == true){
+                TSP.loudSpeaker = false;
+                TSP.loudSpeakerSrc ='images/speakeroff.png';
+            }else{TSP.loudSpeakerSrc ='images/speakeron.png';TSP.loudSpeaker = true;}
             console.log("SPK");
         }
+    }
+
+    //BUTTONS
+    function checkIfButtons(row, col){
+        var RButtons = allButtons[0].buttons;
+
+        RButtons.forEach(function(button) {
+                    //row-1 because starts at row 1 instead of row 0
+                if(button.visible){
+                    if(button.col == col && button.row == row){
+                        if(!button.pressed){
+                            button.sprite = button.on;
+                            button.pressed = true;
+                        }
+                        else{
+                            if(button.name == "SELECTROLE"){
+                                for (var i = 0; i < 15; i++) {
+                            allButtons[0].buttons[i+7].visible = true;
+                            }
+                                allButtons[0].buttons[2].visible = true;
+                            }
+                            button.sprite = button.off;
+                            button.pressed = false;}
+                    } 
+                }else if(button.col == col && button.row == row && (button.name == "DA" || button.name == "REPLAY") ){
+                    var volpad = allButtons[0].buttons[0];
+                    volpad.sprite = volpad.off;
+                    volpad.pressed = false;
+                    volpad.visible=true;
+                    allButtons[0].buttons[8].visible = true;
+                    allButtons[0].buttons[7].visible = true;
+                }
+                else if(button.col == col && button.row == row && (button.name == "ENDCALL" || button.name == "CONF" ) ){
+                    var volpad = allButtons[0].buttons[1];
+                    volpad.sprite = volpad.off;
+                    volpad.pressed = false;
+                    volpad.visible=true;
+                    for (var i = 0; i < 15; i++) {
+                        allButtons[0].buttons[i+7].visible = true;
+                    }
+                    allButtons[0].buttons[2].visible = true;
+                }
+                else if(button.col == col && button.row == row && (button.name == "LOCKSCREEN" || button.name == "POSMON") ){
+                    console.log("voll");
+                    //var volpad = allButtons[0].buttons[1];
+                    button.sprite = 'images/volumecontrol.png';
+                    button.visible = true;
+                    allButtons[0].buttons[7].visible = true;  
+                }
+
+        });
+    }
+
+
+    function setEmbiroment(){
+        allElements[0]['radioChannels'][0].onuse = true;
+        allElements[0]['radioChannels'][2].onuse = true;
+        allElements[0]['radioChannels'][0].multiple = true;
+        allElements[0]['radioChannels'][2].multiple = true;
+        allElements[0]['radioChannels'][5].multiple = true;
+        allElements[0]['radioChannels'][9].multiple = true;
     }
 
     /* This function serves as the kickoff point for the  loop itself
@@ -123,6 +221,7 @@ var Engine = (function(global) {
          */
         var now = Date.now(),
             dt = (now - lastTime) / 1000.0;
+
 
 
         /* Call our update/render functions, pass along the time delta to
@@ -150,9 +249,9 @@ var Engine = (function(global) {
         reset();
         lastTime = Date.now();
         main();
-        ctx.font = "10pt impact";
-        setRadioChannels();
+        //setRadioChannels();
         createAllButtons();
+        setEmbiroment();
     }
     
  
@@ -165,13 +264,12 @@ var Engine = (function(global) {
      * on the entities themselve within your app.js file).
      */
     function update(dt) {
-        updateEntities(dt);
+        //updateEntities(dt);
     }
     
     //This function set the game over screen and make visible an "try again"
     //button
-    function Over()
-    {
+    function Over(){
         if(gameOver)
             {
                 ctx.drawImage(Resources.get("images/gameOver.png"), 0,50);
@@ -192,44 +290,141 @@ var Engine = (function(global) {
 
     //Draws everything on screen
     function render() {
-
+        //getClock();
         Over();
-       
-        ctx.drawImage(Resources.get('./images/tspBase.png'),0,0);
+        //Background
+        ctx.drawImage(Resources.get('images/tspBase.png'),0,0);
+        //PTT BUTTON
         ctx.drawImage(Resources.get(TSP.PTTSRC),0,600);
 
         //Draw Radio Channels
         var radios = allElements[0].radioChannels;
+        var RButtons = allButtons[0].buttons;
+        ctx.fillStyle="black";
+        ctx.font = "9pt impact"
         renderRadios(radios);
+        renderButtons(RButtons);
+        renderClock();
     }
 
-    function renderRadios(radios){
+    function renderRadios(radios){ 
         
         for (var rows = 0; rows < TSP.radioRows; rows++) {
             var elements= radios[rows].elementsToAdd;
             
             radios.forEach(function(radioChannel) {
+
                 ctx.drawImage(Resources.get(radioChannel.sprite),radioChannel.col/2*130,(radioChannel.row+1)*66);
                 ctx.drawImage(Resources.get(elements.volume.src),radioChannel.col/2*130+elements.volume.positionx,(radioChannel.row+1)*66+elements.volume.positiony);
-                if (TSP.PTT && radioChannel.PTT) {
-                    ctx.drawImage(Resources.get(elements.hollow.src),radioChannel.col/2*130+elements.hollow.positionx,(radioChannel.row+1)*66+elements.hollow.positiony);
-                    ctx.drawImage(Resources.get("images/downarrow.png"),radioChannel.col/2*130+elements.hollow.positionx-60,(radioChannel.row+1)*66+elements.hollow.positiony);
+                
+
+                if (radioChannel.selected) {
+                    if(radioChannel.onuse && !TSP.PTT){
+                        ctx.drawImage(Resources.get(elements.arrow.src2),radioChannel.col/2*130+elements.arrow.positionx,(radioChannel.row+1)*66+elements.arrow.positiony);
+                    }
+                    if(TSP.PTT && !radioChannel.onuse){
+                        ctx.drawImage(Resources.get(elements.arrow.src),radioChannel.col/2*130+elements.arrow.positionx,(radioChannel.row+1)*66+elements.arrow.positiony);
+                        ctx.drawImage(Resources.get("images/downarrow.png"),radioChannel.col/2*130+elements.arrow.positionx-60,(radioChannel.row+1)*66+elements.arrow.positiony);
+                    }
+                    if(radioChannel.multiple){
+                        ctx.drawImage(Resources.get(elements.multiple.src),radioChannel.col/2*130+elements.multiple.positionx,(radioChannel.row+1)*66+elements.multiple.positiony);
+                        
+                    }
+                    if(TSP.PTT && radioChannel.onuse){
+                        window.alert("You shoud not PTT while a Channel is been used.");
+                        TSP.PTT = false;
+                    TSP.PTTSRC ='images/ptt.png';}
+
+                    //ctx.drawImage(Resources.get(elements.arrow.src2),radioChannel.col/2*130+elements.arrow.positionx,(radioChannel.row+1)*66+elements.arrow.positiony);
+                    //ctx.drawImage(Resources.get("images/downarrow.png"),radioChannel.col/2*130+elements.arrow.positionx-60,(radioChannel.row+1)*66+elements.arrow.positiony);
+                }
+                ctx.fillText(radioChannel.frecuency,radioChannel.col/2*130+elements.frecuency.positionx,(radioChannel.row+1)*66+elements.frecuency.positiony); 
+          
+
+                //ctx.drawImage(Resources.get(TSP.loudSpeakerSrc),0,8*66);
+                });
+        }
+        //CLOCK
+        ctx.font = "40pt calibri";
+        ctx.fillText(str, 30, 50);
+    }
+
+    function renderButtons(Rbuttons){
+        Rbuttons.forEach(function(button) {
+            if(button.visible){
+                button.render();
+
+                if(button.name == "VOLPAD" && button.pressed){
+                    button.sprite = 'images/VOLPADWINDOW.png';
+                    allButtons[0].buttons[8].visible = false;
+                    allButtons[0].buttons[7].visible = false;
+                }
+                else if(button.name == "SELECTROLE" && button.pressed){
+                    button.sprite = 'images/ROLEWINDOW.png';
+                    button.row = 1;
+                    button.col = 4;
+                    button.render();
+                    
+                    button.sprite = button.on;
+                    button.row = 0;
+                    button.col = 11;
+                    button.render();
+                
+                    for (var i = 0; i < 15; i++) {
+                        allButtons[0].buttons[i+7].visible = false;
+                    }
+                    allButtons[0].buttons[2].visible = false;
                 }
 
-                ctx.drawImage(Resources.get(TSP.loudSpeakerSrc),0,8*66);
+                else if(button.name == "EXTRAFUNC" && button.pressed){
+                    TSP.extrafunc = true;
+                    button.sprite = 'images/EXTRAFUNCWINDOW.png';
+                    button.row = 7;
+                    button.col = 0;
+                    button.render();
                     
-                ctx.fillText(elements.frecuency.name,radioChannel.col/2*130+elements.frecuency.positionx,(radioChannel.row+1)*66+elements.frecuency.positiony);
-                //ctx.drawImage(Resources.get(elements.src),130+elements.positionx,((rows+1)*66)+elements.positiony);
-            });
-            //ctx.drawImage(Resources.get(radioChannel.sprite),1*130,(rows+1)*66);
-            //ctx.drawImage(Resources.get(radioChannel.sprite),0,(rows+1)*66);    
-            //ctx.drawImage(Resources.get(elements.src),1*130+elements.positionx,((rows+1)*66)+elements.positiony);
-        
-            ctx.fillStyle="black";
-            ctx.font = "9pt impact"
-            //ctx.fillText(radios.radios[rows].frecuency,50,((rows+1)*66)+20);
-            //ctx.fillText(radios.radios[rows].frecuency,50+130,((rows+1)*66)+20);
-        }
+                    button.sprite = button.on;
+                    button.row = 8;
+                    button.col = 7;
+                    button.render();
+                
+                    for (var i = 0; i < 19; i++) {
+                        allButtons[0].buttons[i+3].visible = false;
+                    }
+                    allButtons[0].buttons[18].visible = true;
+                    allButtons[0].buttons[16].visible = true;
+                    allButtons[0].buttons[17].visible = true;
+
+                }
+                 else if((button.name == "LOCKSCREEN" || button.name == "POSMON") && allButtons[0].buttons[18].pressed && button.pressed){
+                    button.sprite = 'images/volumecontrol.png';
+                    button.row = 0;
+                    button.col = 2;
+                    button.render();
+                    
+                    button.sprite = button.on;
+                    if(button.name == "LOCKSCREEN"){
+                        button.row = 8;
+                        button.col = 5;
+                    }
+                    if(button.name == "POSMON"){
+                        button.row = 8;
+                        button.col = 6;
+                    }
+                    button.render();
+                    allButtons[0].buttons[7].visible = false;
+                }
+
+            }
+        });
+    }
+
+    function renderClock(){
+        d = new Date();
+        str = Calculate(d.getHours(), d.getMinutes(), d.getSeconds());
+        ctx.font = "10pt impact";
+        ctx.fillStyle = "Black";
+          
     }
 
     //  handle game reset states. It's only called once by the init() method.
@@ -237,9 +432,6 @@ var Engine = (function(global) {
     function reset() {
 
         TSP.reset();
-        allEntities.forEach(function(radioChannel) {
-            radioChannel.randomPos();
-        });
     }
 
 
@@ -262,7 +454,54 @@ var Engine = (function(global) {
      * all of these images are properly loaded our game will start.
      */
     Resources.load([
-        './images/tspBase.png',
+        'images/EXTRAFUNCWINDOW.png',
+        'images/ROLEWINDOW.png',
+        'images/VOLPADWINDOW.png',
+        'images/VOLPAD.png',
+        'images/VOLPADon.png',
+        'images/SELECTROLE.png',
+        'images/SELECTROLEon.png',
+        'images/DIALPAD.png',
+        'images/DIALPADon.png',
+        'images/LOUDSPEAKER.png',
+        'images/LOUDSPEAKERon.png',
+        'images/FREQLOCK.png',
+        'images/FREQLOCKon.png',
+        'images/COUPLE.png',
+        'images/COUPLEon.png',
+        'images/ONCHANNEL.png',
+        'images/ONCHANNELon.png',
+        'images/CHIME.png',
+        'images/CHIMEon.png',
+        'images/CALLDIVERT.png',
+        'images/CALLDIVERTon.png',
+        'images/PRIO.png',
+        'images/PRIOon.png',
+        'images/IC.png',
+        'images/ICon.png',
+        'images/PHONELIST.png',
+        'images/PHONELISTon.png',
+        'images/ENDCALL.png',
+        'images/SPLIT.png',
+        'images/SPLITon.png',
+        'images/ENDCALLon.png',
+        'images/LOCKSCREEN.png',
+        'images/LOCKSCREENon.png',
+        'images/POSMON.png',
+        'images/POSMONon.png',
+        'images/EXTRAFUNC.png',
+        'images/EXTRAFUNCon.png',
+        'images/HOLD.png',
+        'images/HOLDon.png',
+        'images/XFER.png',
+        'images/XFERon.png',
+        'images/CONF.png',
+        'images/CONFon.png',
+        'images/DA.png',
+        'images/DAon.png',
+        'images/REPLAY.png',
+        'images/REPLAYon.png',
+        'images/tspBase.png',
         'images/ptt.png',
         'images/speakeron.png',
         'images/speakeroff.png',
@@ -282,7 +521,9 @@ var Engine = (function(global) {
         'images/radioVolume10.png',
         'images/radioVolume11.png',
         'images/gameOver.png',
+        'images/multiple.png',
         'images/dead.png',
+        'images/volumecontrol.png',
     ]);
     Resources.onReady(init);
 
