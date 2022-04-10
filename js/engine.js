@@ -44,42 +44,57 @@ var Engine = (function(global) {
         var row =  (mouse.y - mouse.y%65)/65;
 
         //ENDCALL button expanded 1 square down
-        var callnumber =  allButtons[0].buttons[14];
-        if(col == callnumber.col && row == callnumber.row+1){
-            row = callnumber.row;
-        }
+        row = col == endcall.col && row == endcall.row+1 ? endcall.row: row ;
+    
 
         //PTT button expanded one square to the left
-        var pttpos =  allButtons[0].buttons[23];
-        if(col == pttpos.col+1 && row == pttpos.row){
-            col = pttpos.col;
+        if(col == ptt.col+1 && row == ptt.row){
+            col = ptt.col;
         }
-        
-        if(col == 1 && row == 9){col = 0}
+
+        //SIMULATE button expanded one square to the left
+        if(col == simulate.col+1 && row == simulate.row){
+            col = simulate.col;
+        }
 
             
         //console.log( "columna: " + col + " fila: " + row);
         checkIfRadioPress(row, col);
-        //checkIfPtt(row, col);
         checkIfButtons(row, col);
+    });
+
+    //MOUSE UP
+    //So far used for vol pad HS/HND controls
+    canvas.addEventListener("mouseup",function(event)
+    {
+        console.log("volpad");
+        var mouse = getMousePos(canvas,event);
+        var col = (mouse.x - mouse.x%65)/65;
+        var row =  (mouse.y - mouse.y%65)/65;
+
+        //Updates HS and HND on screen
+        if(volpad.pressed && hs.visible){
+
+            //HS column
+            if(col == hs.col && row > 0 && row < 7){
+               hs.row = row; 
+           }
+            //HND column
+            if(col == hnd.col && row > 0 && row < 7){
+               hnd.row = row;
+           }
+       }
     });
 
 
     //CLOCK
     /*Display a 24H format clock on the screen*/
-
     var d;
     var str;
     function getClock(){
     
         d = new Date();
         str = Calculate(d.getHours(), d.getMinutes(), d.getSeconds());
-    
-        //context = clock.getContext("2d");
-        ctx.clearRect(600, 300, 500, 200);
-        ctx.font = "40pt calibri";
-        ctx.fillStyle = "white";
-        ctx.fillText(str, 600, 300);
     }
 
     function Calculate(hour, min, sec){
@@ -108,18 +123,11 @@ var Engine = (function(global) {
     function checkIfRadioPress(row, col){
         var radios = allElements[0].radioChannels;
         if(col < 4 && row > 0 && row < 8){
-
             radios.forEach(function(radioChannel) {
                 radioChannel.grab(row,col);  
             });
         }
     }
-
-    //PTT
-    /*Checks if the PTT button has been pressed*/
-    function checkIfPtt(row, col){
-        if (allButtons[0].buttons[23].pressed) {console.log("PTT");}
-     }
 
     //BUTTONS
     /*Checks if a button has been pressed*/
@@ -128,21 +136,59 @@ var Engine = (function(global) {
         var RButtons = allButtons[0].buttons;
 
         RButtons.forEach(function(button) {
-            button.grab(row,col);
+            if(button.row == row && button.col == col){
+                
+                if(typeof button.popup === "function"){
+                    button.popup();
+                }
+
+                button.grab(row,col);
+            }
         });
-        TSP.PTT = allButtons[0].buttons[23].pressed;
+        //Saves PTT button status value to TSP.PTT
+        TSP.PTT = ptt.pressed;
+
+        //Check if the SIMULATE ATC button has been pressed
+        //if so then release the button and run the simulation
+        if(simulate.pressed){
+            setTimeout(function(){
+                canvas.dispatchEvent(
+                    new MouseEvent("click", 
+                    {
+                        clientX: simulate.col*simulate.constant,
+                        clientY: simulate.row*simulate.constant,
+                        bubbles: true
+                    })
+                );
+            },500);
+            if(!TSP.simulating){
+                TSP.simulate(true);
+                TSP.simulating = true;
+            }else{
+                TSP.simulate(false);
+                TSP.simulating = false;
+            }
+        }
     }
 
     //ENVIROMENT
     /*Sets the initial scenario*/
     function setEmbiroment(){
-        allElements[0]['radioChannels'][0].activePTT = true;
-        allElements[0]['radioChannels'][2].activePTT = true;
         allElements[0].radioChannels[0].onuse = true;
+        allElements[0]['radioChannels'][0].activePTT = true;
         allElements[0].radioChannels[2].onuse = true;
+        allElements[0].radioChannels[2].AG = true;
         allElements[0].radioChannels[1].onuse = true;
         allElements[0].radioChannels[5].onuse = true;
         allElements[0].radioChannels[11].onuse = true;
+
+        //HS/HND Enbiroment
+        /*Change button position on screen and hides them*/
+        hs.constant = 68.1;
+        hnd.constant = 68.6;
+
+        hs.visible = false;
+        hnd.visible = false
     }
 
     //MAIN
@@ -184,7 +230,10 @@ var Engine = (function(global) {
         lastTime = Date.now();
         main();
         createAllButtons();
+        createPopups();
         setEmbiroment();
+        
+        TSP.count = 100;
     }
     
  
@@ -200,11 +249,18 @@ var Engine = (function(global) {
     }
 
     function updateEntities(dt) {
-      allElements[0].radioChannels.forEach(function(radioChannel) {
+        allElements[0].radioChannels.forEach(function(radioChannel) {
             radioChannel.update(dt);
+            radioChannel.simulate(dt);
             //radioChannel.grab();
         });
+
+        allButtons[0].buttons.forEach(function(button) {
+            button.update(dt);
+            //button.grab();
+        });
         TSP.update(dt);
+
     }
 
     //Draws everything on screen
@@ -212,9 +268,7 @@ var Engine = (function(global) {
         Over();
 
         //Background
-        ctx.drawImage(Resources.get('images/tspBase.png'),0,0);
-
-
+        ctx.drawImage(Resources.get('tspBase.png'),0,0);
 
         //Draw Radio Channels
         var radios = allElements[0].radioChannels;
@@ -229,16 +283,8 @@ var Engine = (function(global) {
     function renderRadios(radios){ 
             
         radios.forEach(function(radioChannel) {
-
             radioChannel.render();
-
-            if (radioChannel.selected) {
-
-
-            
-                
-            }
-            });
+        });
         
         //CLOCK
         ctx.font = "40pt calibri";
@@ -249,32 +295,13 @@ var Engine = (function(global) {
         Rbuttons.forEach(function(button) {
             if(button.visible){
                 button.render();
-
-                if(button.name == "VOLPAD" && button.pressed){
-                    button.sprite = 'images/VOLPADWINDOW.png';
-                    allButtons[0].buttons[8].visible = false;
-                    allButtons[0].buttons[7].visible = false;
-                }
-                else if(button.name == "SELECTROLE" && button.pressed){
-                    button.sprite = 'images/ROLEWINDOW.png';
-                    button.row = 1;
-                    button.col = 4;
-                    button.render();
-                    
-                    button.sprite = button.on;
-                    button.row = 0;
-                    button.col = 11;
-                    button.render();
-                
-                    for (var i = 0; i < 15; i++) {
-                        allButtons[0].buttons[i+7].visible = false;
-                    }
-                    allButtons[0].buttons[2].visible = false;
+                if(typeof button.popuprender === "function" && button.pressed){
+                    button.popuprender();
                 }
 
                 else if(button.name == "EXTRAFUNC" && button.pressed){
                     TSP.extrafunc = true;
-                    button.sprite = 'images/EXTRAFUNCWINDOW.png';
+                    button.sprite = 'EXTRAFUNCWINDOW.png';
                     button.row = 7;
                     button.col = 0;
                     button.render();
@@ -293,7 +320,7 @@ var Engine = (function(global) {
 
                 }
                  else if((button.name == "LOCKSCREEN" || button.name == "POSMON") && allButtons[0].buttons[18].pressed && button.pressed){
-                    button.sprite = 'images/volumecontrol.png';
+                    button.sprite = 'volumecontrol.png';
                     button.row = 0;
                     button.col = 2;
                     button.render();
@@ -330,94 +357,86 @@ var Engine = (function(global) {
         TSP.reset();
     }
 
-/*
-        function setRadioChannels() {
-        allEntities.forEach(function(radioChannel) {
-            for (var rows = TSP.radioRows - 1; rows >= 0; rows--) {
-
-            for(colRadio=0;colRadio<TSP.radioColums;colRadio++)
-            {
-            this.x = colRadio*130;
-            this.y = rows*65;
-                //ctx.drawImage(Resources.get("images/radioElement.png"),colRadio*130,rows*65);
-            }
-            }
-        });
-    }
-    */
 
     /* Go ahead and load all of the images we know we're going to need to
      * draw our game level. Then set init as the callback method, so that when
      * all of these images are properly loaded our game will start.
      */
     Resources.load([
-        'images/EXTRAFUNCWINDOW.png',
-        'images/ROLEWINDOW.png',
-        'images/VOLPADWINDOW.png',
-        'images/VOLPAD.png',
-        'images/VOLPADon.png',
-        'images/SELECTROLE.png',
-        'images/SELECTROLEon.png',
-        'images/DIALPAD.png',
-        'images/DIALPADon.png',
-        'images/LOUDSPEAKER.png',
-        'images/LOUDSPEAKERon.png',
-        'images/FREQLOCK.png',
-        'images/FREQLOCKon.png',
-        'images/COUPLE.png',
-        'images/COUPLEon.png',
-        'images/ONCHANNEL.png',
-        'images/ONCHANNELon.png',
-        'images/CHIME.png',
-        'images/CHIMEon.png',
-        'images/CALLDIVERT.png',
-        'images/CALLDIVERTon.png',
-        'images/PRIO.png',
-        'images/PRIOon.png',
-        'images/IC.png',
-        'images/ICon.png',
-        'images/PHONELIST.png',
-        'images/PHONELISTon.png',
-        'images/ENDCALL.png',
-        'images/SPLIT.png',
-        'images/SPLITon.png',
-        'images/ENDCALLon.png',
-        'images/LOCKSCREEN.png',
-        'images/LOCKSCREENon.png',
-        'images/POSMON.png',
-        'images/POSMONon.png',
-        'images/EXTRAFUNC.png',
-        'images/EXTRAFUNCon.png',
-        'images/HOLD.png',
-        'images/HOLDon.png',
-        'images/XFER.png',
-        'images/XFERon.png',
-        'images/CONF.png',
-        'images/CONFon.png',
-        'images/DA.png',
-        'images/DAon.png',
-        'images/REPLAY.png',
-        'images/REPLAYon.png',
-        'images/tspBase.png',
-        'images/PTT.png',
-        'images/PTTon.png',
-        'images/BASERX.png',
-        'images/BASETX.png',
-        'images/uparrow.png',
-        'images/downarrow.png',
-        'images/uphollow.png',
-        'images/radioElement.png',
-        'images/radioVolume4.png',
-        'images/radioVolume5.png',
-        'images/radioVolume6.png',
-        'images/radioVolume7.png',
-        'images/radioVolume8.png',
-        'images/radioVolume9.png',
-        'images/radioVolume10.png',
-        'images/radioVolume11.png',
-        'images/multiple.png',
-        'images/dead.png',
-        'images/volumecontrol.png',
+        'EXTRAFUNCWINDOW.png',
+        'ROLEWINDOW.png',
+        'VOLPADWINDOW.png',
+        'VOLPAD.png',
+        'VOLPADon.png',
+        'SELECTROLE.png',
+        'SELECTROLEon.png',
+        'DIALPAD.png',
+        'DIALPADon.png',
+        'LOUDSPEAKER.png',
+        'LOUDSPEAKERon.png',
+        'FREQLOCK.png',
+        'FREQLOCKon.png',
+        'COUPLE.png',
+        'COUPLEon.png',
+        'ONCHANNEL.png',
+        'ONCHANNELon.png',
+        'CHIME.png',
+        'CHIMEon.png',
+        'CALLDIVERT.png',
+        'CALLDIVERTon.png',
+        'PRIO.png',
+        'PRIOon.png',
+        'IC.png',
+        'ICon.png',
+        'PHONELIST.png',
+        'PHONELISTon.png',
+        'ENDCALL.png',
+        'SPLIT.png',
+        'SPLITon.png',
+        'ENDCALLon.png',
+        'LOCKSCREEN.png',
+        'LOCKSCREENon.png',
+        'POSMON.png',
+        'POSMONon.png',
+        'EXTRAFUNC.png',
+        'EXTRAFUNCon.png',
+        'HOLD.png',
+        'HOLDon.png',
+        'XFER.png',
+        'XFERon.png',
+        'CONF.png',
+        'CONFon.png',
+        'DA.png',
+        'DAon.png',
+        'REPLAY.png',
+        'REPLAYon.png',
+        'tspBase.png',
+        'PTT.png',
+        'PTTon.png',
+        'BASERX.png',
+        'BASE.png',
+        'BASETX.png',
+        'uparrow.png',
+        'downarrow.png',
+        'uphollow.png',
+        'radioElement.png',
+        'radioVolume4.png',
+        'radioVolume5.png',
+        'radioVolume6.png',
+        'radioVolume7.png',
+        'radioVolume8.png',
+        'radioVolume9.png',
+        'radioVolume10.png',
+        'radioVolume11.png',
+        'multiple.png',
+        'dead.png',
+        'volumecontrol.png',
+        'HS.png',
+        'HND.png',
+        'HSon.png',
+        'HNDon.png',
+        'SIMULATE.png',
+        'SIMULATEon.png',
     ]);
     Resources.onReady(init);
 

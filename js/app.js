@@ -1,78 +1,93 @@
 //Improve error checking and code restrictions.
 "use strict";
 
-// Radio Channel our TSP must have
-var radioChannel = function(row, col) {
+//Channels base background images
+var chparts = {
+    baseRx:"BASERX.png",
+    baseTx:"BASETX.png",
+    base:"BASE.png"
+};
+
+var chIcons = 
+{
+    volume:{src:'radioVolume7.png',positionx:5,positiony:25},
+    onuse:{src:'multiple.png',positionx:121,positiony:25},
+    hollow:{src:'uphollow.png',positionx:75,positiony:30},
+    downarrow:{src:'downarrow.png',positionx:20,positiony:30},
+    frecuency:{src:'',positionx:50,positiony:20},
+    uparrow: {src:'uparrow.png',positionx:75,positiony:30},
+}
+
+//RADIO CHANNELS
+/* Radio Channel our TSP must have*/
+var radioChannel =  function(row, col) {
     this.onuse = false;                             //Indicates channel been selected in a diferent position
     this.selected = false;                          //Active when channel TX has been selected
     this.activePTT = false;                         //Channel has an active PTT signal
     this.row = row;
     this.col = col;
-    this.vol = 4;
+    this.vol = 7;
     this.frecuency = 110 +row+col*4+" LON";
-    this.sprite = 'images/radioElement.png';        //Radio Channel background image
-    this.RXsrc = 'images/BASERX.png';
-    this.TXsrc = 'images/BASETX.png';
-    this.BASEsrc = 'images/radioElement.png';
+    this.sprite = 'BASE.png';        //Radio Channel background image
     this.visible = true;
-    this.toDrawOver = [
-    {status:true,name:"volume",src:'images/radioVolume4.png',positionx:5,positiony:25},
-    {status:true,name:110+ row+col+" LON",src:'',positionx:50,positiony:20},
-    {status:false,name:"hollow",src:'images/uphollow.png',positionx:75,positiony:30},
-    {status:false,name:"indicator",src:'images/multiple.png',positionx:121,positiony:25},
-    {status:false,name:"downarrow",src:'images/downarrow.png',positionx:20,positiony:30},
-    {status:false,name:"arrow",src:'images/uparrow.png',positionx:75,positiony:30},
-    ];
+    this.AG = false;
+    this.count = 50;
+    this.counting = 0;
+    this.intercount = 0;
+    this.SIMULATION = false;
+    this.toDrawOver = {
+    volume:{status:true},
+    onuse:{status:false},
+    hollow:{status:false},
+    downarrow:{status:false},
+    frecuency:{status:true},
+    uparrow: {status:false},
 };
+};
+
 
 // Update the radioChannel
 // Parameter: dt, a time delta
 radioChannel.prototype.update = function(dt) 
 {
-    var icon = this.toDrawOver[3];
-    var downarrow = this.toDrawOver[4];
-    var uparrow = this.toDrawOver[5];
-    var hArrow = this.toDrawOver[2];
-    var volume = this.toDrawOver[0];
-    var PTTButton = allButtons[0].buttons[23];
-
     //ICON
     if(this.onuse){
-        this.toDrawOver[3].status = true;
+        this.toDrawOver.onuse.status = true;
     }
     else{
-        this.toDrawOver[3].status = false;
+        this.toDrawOver.onuse.status = false;
     }
 
     //DOWN ARROW
-    if(this.activePTT && this.sprite != this.BASEsrc){
-        downarrow.status = true;
+    if((this.AG || this.activePTT) && this.sprite != chparts.base){
+        this.toDrawOver.downarrow.status = true;
     }
-    else{downarrow.status = false};
+    else{this.toDrawOver.downarrow.status = false};
 
     //UP ARROW
-    if(this.sprite == this.TXsrc && !this.activePTT && TSP.PTT){
-        uparrow.status = true;
+    if(this.sprite == chparts.baseTx && !this.activePTT && TSP.PTT){
+        this.toDrawOver.uparrow.status = true;
         this.activePTT = true;
-    }else if(!TSP.PTT || this.sprite == this.RXsrc){
-        if(uparrow.status == true){ 
-            uparrow.status = false;this.activePTT = false;
+    }else if(!TSP.PTT || this.sprite == chparts.baseRx){
+        if(this.toDrawOver.uparrow.status == true){ 
+            this.toDrawOver.uparrow.status = false;
+            this.activePTT = false;
         }
     }
 
-    //HOLLOW  UP ARROW 
-    if(this.onuse && this.sprite == this.TXsrc && this.activePTT){
-        hArrow.status = true;
-    }else{
-        hArrow.status = false
-    }
-
     //PTT on busy channel
-    if(this.sprite == this.TXsrc &&  hArrow.status && this.activePTT && TSP.PTT){
+    if(this.selected && this.toDrawOver.hollow.status && this.activePTT && TSP.PTT){
         window.alert("You shoud not PTT while a Channel is been used.");
         TSP.PTT = false;
-        PTTButton.sprite = PTTButton.off;
-        TSP.PTTSRC ='images/ptt.png';
+        ptt.sprite = ptt.off;
+        TSP.PTTSRC ='ptt.png';
+    }
+
+    //HOLLOW  UP ARROW 
+    if(this.onuse && this.selected && this.activePTT && !TSP.PTT){
+        this.toDrawOver.hollow.status = true;
+    }else{
+        this.toDrawOver.hollow.status = false;
     }
 };
 
@@ -81,14 +96,15 @@ radioChannel.prototype.render = function()
 {
     var ch = this;
     var col = this.col/2*130;
-
+    var match;
     ctx.drawImage(Resources.get(this.sprite),col,(this.row+1)*66);
-    this.toDrawOver.forEach(function(draw) {
-        if(draw.status){
-            if(draw.src != ''){
-                ctx.drawImage(Resources.get(draw.src),col+draw.positionx,(ch.row+1)*66+draw.positiony);
+    Object.keys(this.toDrawOver).forEach(function(draw) {
+        if(ch.toDrawOver[draw].status){
+
+            if(draw != 'frecuency'){
+                ctx.drawImage(Resources.get(chIcons[draw].src),col+chIcons[draw].positionx,(ch.row+1)*66+chIcons[draw].positiony);
             }else{
-                ctx.fillText(ch.frecuency,col+draw.positionx,(ch.row+1)*66+draw.positiony); 
+                ctx.fillText(ch.frecuency,col+chIcons[draw].positionx,(ch.row+1)*66+chIcons[draw].positiony); 
             }
         }
     });
@@ -98,113 +114,70 @@ radioChannel.prototype.render = function()
 //Checks if the Channel has been touched
 //Them checks if is an RX or TX
 radioChannel.prototype.grab = function(row,col) {
-    if((this.col == col || this.col == col-1 )&& this.row == row-1 ){
-        console.log("Radio " + this.toDrawOver[1].name);
-    }
-
     //row-1 because starts at row 1 instead of row 0
     //Si es un RX
     if(this.col == col && this.row == row-1){
         //console.log("matchRX");
         this.selected = false;
-        if (this.sprite == this.RXsrc) {
-            this.sprite = this.BASEsrc;}
+        if (this.sprite == chparts.baseRx) { 
+            this.sprite = chparts.base;}
             else{
-                this.sprite = this.RXsrc;
+                this.sprite = chparts.baseRx;
             }
     }
 
     //If TX selected
     if(this.col == col-1 && this.row == row-1){
         //console.log("matchTX");
-        this.sprite = this.TXsrc;
+        this.sprite = chparts.baseTx;
         this.selected = true;
     } 
 };
 
-
-//BUTTON
-var Button = function(name) {
-    this.name = name.name;
-    this.row = name.row;
-    this.col = name.col;
-    this.pressed = false;
-    this.visible = true;
-    this.y=0;
-    this.x=0;
-    this.blink = false;
-    this.on = 'images/'+name.name+'on.png';
-    this.off = 'images/'+name.name+'.png';
-    this.sprite = 'images/'+name.name+'.png';
-};
-
-Button.prototype.render = function() 
-{
-    ctx.drawImage(Resources.get(this.sprite), this.col*66, this.row*66);
-};
-
-//Checks if the button has been touched
-Button.prototype.grab = function(row,col) {
-    if(this.col == col && this.row == row){
-        console.log(this.name);
+radioChannel.prototype.simulate = function() {
+    if(this.SIMULATION){
+        this.counting++;
+        if(this.count < this.counting){
+            this.intercount++;
+            this.count = Math.floor(Math.random() * 200);
+            this.counting = 0;
+            if(this.intercount <= 1){
+                if( this.activePTT){
+                    this.activePTT = false;
+                }else{
+                    this.activePTT = true;
+                }
+            }else{
+                if( this.AG){
+                    this.AG = false;
+                }else{
+                    this.AG = true;
+                }
+            }
+            if(this.intercount >=3){this.intercount = 0};
+        } 
     }
-    //row-1 because starts at row 1 instead of row 0
-    if(this.visible){
-        if(this.col == col && this.row == row){
-            if(!this.pressed){
-                this.sprite = this.on;
-                this.pressed = true;
-            }
-            else{
-                if(this.name == "SELECTROLE"){
-                    for (var i = 0; i < 15; i++) {
-                        allthiss[0].thiss[i+7].visible = true;
-                    }
-                    allthiss[0].thiss[2].visible = true;
-                }
-                this.sprite = this.off;
-                this.pressed = false;}
-            }
-
-        }else if(this.col == col && this.row == row && (this.name == "DA" || this.name == "REPLAY") ){
-            var volpad = allButtons[0].buttons[0];
-            volpad.sprite = volpad.off;
-            volpad.pressed = false;
-            volpad.visible=true;
-            allButtons[0].buttons[8].visible = true;
-            allButtons[0].buttons[7].visible = true;
-        }
-        else if(this.col == col && this.row == row && (this.name == "ENDCALL" || this.name == "CONF" ) ){
-            var volpad = allButtons[0].buttons[1];
-            volpad.sprite = volpad.off;
-            volpad.pressed = false;
-            volpad.visible=true;
-            for (var i = 0; i < 15; i++) {
-                allButtons[0].buttons[i+7].visible = true;
-            }
-            allButtons[0].buttons[2].visible = true;
-        }
-        else if(this.col == col && this.row == row && (this.name == "LOCKSCREEN" || this.name == "POSMON") ){
-            console.log("voll");
-                    this.sprite = 'images/volumecontrol.png';
-                    this.visible = true;
-                    allButtons[0].buttons[7].visible = true;  
-                }
 };
 
-// Ower hero/es class.
+
+
+//MAIN SCREEN
+/*This is the base for the whole screen*/
 var MAINSCREEN = function() {
+    this.simualting = false;
     this.extrafunc = false;
     this.loudSpeaker = true;
-    this.loudSpeakerSrc ='images/speakeron.png';
+    this.loudSpeakerSrc ='speakeron.png';
     this.radioColums = 2;
     this.radioRows = 7;
     this.hearts =3;
     this.points =0;
-    this.charpic = 'images/char-boy.png';
-    this.chardead = 'images/dead.png';
-    this.PTTSRC = 'images/PTT.png';
+    this.charpic = 'char-boy.png';
+    this.chardead = 'dead.png';
+    this.PTTSRC = 'PTT.png';
     this.PTT = false;
+    this.SIMULATION = false;
+    this.intercount = 0;
 };
 
 //Check user inputs to set TSP MAINSCREEN position.
@@ -218,12 +191,12 @@ MAINSCREEN.prototype.handleInput = function(key)
 
         if(el.vol < 11){
             el.vol = el.vol+1;
-            el.toDrawOver[0].src = 'images/radioVolume'+ el.vol + '.png';
+            el.toDrawOver[0].src = 'radioVolume'+ el.vol + '.png';
         }
     }
     if(key ==  "down"&&TSP.y<395){
         this.y+=83;
-        allElements[0].radioChannels[0].radiosLeft[0].sprite = 'images/BASERX.png';
+        allElements[0].radioChannels[0].radiosLeft[0].sprite = chparts.baseRx;
     }
     if(key ==  "right"&& TSP.x <404){
         this.x+=101;
@@ -253,6 +226,30 @@ MAINSCREEN.prototype.render = function() {
     ctx.drawImage(Resources.get(this.charpic), this.x, this.y);
 };
 
+
+MAINSCREEN.prototype.simulate = function(status) {
+    if(status){
+        allElements[0].radioChannels[0].SIMULATION = true;
+        allElements[0].radioChannels[1].SIMULATION = true;
+        allElements[0].radioChannels[4].SIMULATION = true;
+        allElements[0].radioChannels[6].SIMULATION = true;
+        allElements[0].radioChannels[7].SIMULATION = true;
+
+        allElements[0].radioChannels[0].sprite = chparts.baseTx;
+        allElements[0].radioChannels[1].sprite = chparts.baseTx;
+        allElements[0].radioChannels[4].sprite = chparts.baseTx;
+        allElements[0].radioChannels[6].sprite = chparts.baseTx;
+        allElements[0].radioChannels[7].sprite = chparts.baseTx;
+    }else{
+        allElements[0].radioChannels[0].SIMULATION = false;
+        allElements[0].radioChannels[1].SIMULATION = false;
+        allElements[0].radioChannels[4].SIMULATION = false;
+        allElements[0].radioChannels[6].SIMULATION = false;
+        allElements[0].radioChannels[7].SIMULATION = false;
+    }
+    
+};
+
 // Place the MAINSCREEN object in a variable called TSP
 var TSP = new MAINSCREEN();
 
@@ -271,10 +268,15 @@ for (var i = 0; i < TSP.radioRows; i++) {
 /*Create all button to be used on the TSP*/
 function createAllButtons(){
     buttons.forEach(function(button) {
-        allButtons[0].buttons.push(new Button(button));
+        var newbutton = new Button(button);
+        allButtons[0].buttons.push(newbutton);
+        window[button.name.toLowerCase()] = newbutton;
+        //eval("var " + button.name + " = 2");
     });
 }
 
+
+var allvar = [];
 var allButtons = [{buttons:[]}];
 var buttons = 
 [
@@ -302,6 +304,9 @@ var buttons =
 {name:"CONF", col:10, row:8},
 {name:"LOUDSPEAKER", col:0, row:8},
 {name:"PTT", col:0, row:9},
+{name:"HS", col:4, row:4},
+{name:"HND", col:5, row:4},
+{name:"SIMULATE", col:10, row:9},
 ];
 
 
