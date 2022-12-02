@@ -41,13 +41,17 @@ var radioChannel =  function(row, col) {
     hollow:{status:false},
     downarrow:{status:false},
     frecuency:{status:true},
-    uparrow: {status:false},
-};
+    uparrow: {status:false}
+    };
 };
 
+//Channel Update
+/*Update changes in the radioChannel
+Usually actions we need to keep track on 
+like when a channel is selected in a diferent
+position
 
-// Update the radioChannel
-// Parameter: dt, a time delta
+Parameter: dt, a time delta*/
 radioChannel.prototype.update = function(dt) 
 {
     //ICON
@@ -172,12 +176,14 @@ var MAINSCREEN = function() {
     this.radioRows = 7;
     this.hearts =3;
     this.points =0;
-    this.charpic = 'char-boy.png';
+    this.tsp = "tspBase.png";
     this.chardead = 'dead.png';
     this.PTTSRC = 'PTT.png';
     this.PTT = false;
     this.SIMULATION = false;
     this.intercount = 0;
+    this.x =0;
+    this.y =0;
 };
 
 //Check user inputs to set TSP MAINSCREEN position.
@@ -210,20 +216,17 @@ MAINSCREEN.prototype.handleInput = function(key)
 //Resets the MAINSCREEN starting posiion.
 MAINSCREEN.prototype.reset = function()
 {
-    this.y = 312;
-    this.x = 202;
 };
 
 //Sets the MAINSCREEN points status, resest its status and
 //increase dificulty.
 MAINSCREEN.prototype.update = function() {
-
 };
 
 // Draw the TSP on the screen and change TSP appeal if 
 //not alive, required method for game.
 MAINSCREEN.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.charpic), this.x, this.y);
+    ctx.drawImage(Resources.get(this.tsp), this.x, this.y);
 };
 
 
@@ -269,7 +272,21 @@ for (var i = 0; i < TSP.radioRows; i++) {
 function createAllButtons(){
     buttons.forEach(function(button) {
         var newbutton = new Button(button);
-        allButtons[0].buttons.push(newbutton);
+        if(typeof button.extrafunc === 'undefined'){
+            allButtons[0].buttons.push(newbutton);
+        }
+        else{
+                if(button.extrafunc == true){
+                    newbutton.visible = false;
+                    allButtons[1].extrabuttons.push(newbutton);
+            
+                }
+                else{
+                    newbutton.visible = false;
+                    allButtons[2].dialpadbuttons.push(newbutton);
+                }
+            }
+        
         window[button.name.toLowerCase()] = newbutton;
         //eval("var " + button.name + " = 2");
     });
@@ -277,16 +294,12 @@ function createAllButtons(){
 
 
 var allvar = [];
-var allButtons = [{buttons:[]}];
+var allButtons = [{buttons:[]},{extrabuttons:[]},{dialpadbuttons:[]}];
 var buttons = 
 [
 {name:"VOLPAD", col:4, row:0},
 {name:"SELECTROLE", col:11, row:0},
 {name:"DIALPAD", col:11, row:6},
-{name:"LOUDSPEAKER", col:0, row:8},
-{name:"FREQLOCK", col:1, row:8},
-{name:"COUPLE", col:2, row:8},
-{name:"ONCHANNEL", col:3, row:8},
 {name:"DA", col:4, row:7},
 {name:"REPLAY", col:5, row:7},
 {name:"CHIME", col:6, row:7},
@@ -294,19 +307,55 @@ var buttons =
 {name:"PRIO", col:8, row:7},
 {name:"IC", col:9, row:7},
 {name:"PHONELIST", col:10, row:7},
-{name:"ENDCALL", col:11, row:7},
 {name:"SPLIT", col:4, row:8},
 {name:"LOCKSCREEN", col:5, row:8},
 {name:"POSMON", col:6, row:8},
-{name:"EXTRAFUNC", col:7, row:8},
 {name:"HOLD", col:8, row:8},
 {name:"XFER", col:9, row:8},
 {name:"CONF", col:10, row:8},
 {name:"LOUDSPEAKER", col:0, row:8},
-{name:"PTT", col:0, row:9},
+{name:"FREQLOCK", col:1, row:8},
+{name:"COUPLE", col:2, row:8},
+{name:"ONCHANNEL", col:3, row:8},
+{name:"row1", col:3, row:1},
+{name:"row2", col:3, row:2},
+{name:"row3", col:3, row:3},
+{name:"row4", col:3, row:4},
+{name:"row5", col:3, row:5},
+{name:"row6", col:3, row:6},
+{name:"row7", col:3, row:7},
 {name:"HS", col:4, row:4},
 {name:"HND", col:5, row:4},
+{name:"PTT", col:0, row:9},
 {name:"SIMULATE", col:10, row:9},
+{name:"ENDCALL", col:11, row:7},
+{name:"EXTRAFUNC", col:7, row:8},
+{name:"CHIMEMULTI", col:5, row:7, extrafunc:true},
+{name:"RADCONN", col:6, row:7, extrafunc:true},
+{name:"CROSSCONN", col:7, row:7, extrafunc:true},
+{name:"TELCONN", col:8, row:7, extrafunc:true},
+{name:"CALLPICKUP", col:9, row:7, extrafunc:true},
+{name:"MAINSTBY", col:4, row:8, extrafunc:true},
+{name:"VOLLEFTROW", col:5, row:8, extrafunc:true},
+{name:"VOLRIGHTROW", col:6, row:8, extrafunc:true},
+{name:"ROLEID", col:8, row:8, extrafunc:true},
+{name:"CHIMETEST", col:9, row:8, extrafunc:true},
+{name:"SELECTFREQ", col:0, row:8, extrafunc:true},
+{name:"BASEBTN", col:1, row:8, extrafunc:true},
+{name:"BTS", col:2, row:8, extrafunc:true},
+{name:"BSS", col:3, row:8, extrafunc:true},
+{name:"CRASHALARM", col:10, row:8, extrafunc:true},
+{name:"LINE0", col:4, row:1}, //Si extrafunc = false entonces es un boton del dialpad
+{name:"DIAL1", col:4, row:3,extrafunc:false},
+{name:"DIAL2", col:5, row:3,extrafunc:false},
+{name:"DIAL3", col:6, row:3,extrafunc:false},
+{name:"DIAL4", col:4, row:4,extrafunc:false},
+{name:"DIAL5", col:5, row:4,extrafunc:false},
+{name:"DIAL6", col:6, row:4,extrafunc:false},
+{name:"DIAL7", col:4, row:5,extrafunc:false},
+{name:"DIAL8", col:5, row:5,extrafunc:false},
+{name:"DIAL9", col:6, row:5,extrafunc:false},
+{name:"DIAL0", col:5, row:6,extrafunc:false},
 ];
 
 

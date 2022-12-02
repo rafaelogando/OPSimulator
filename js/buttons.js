@@ -8,10 +8,12 @@ var Button = function(name) {
     this.pressed = false;
     this.visible = true;
     this.blink = false;
-    this.constant = 66;
+    this.x = this.y = 66;
     this.on = ''+name.name+'on.png';
     this.off = ''+name.name+'.png';
     this.sprite = ''+name.name+'.png';
+    this.popupstoclose = [];
+    this.buttonstoshow = [];
 };
 
 //UPDATE
@@ -28,15 +30,13 @@ Button.prototype.update = function(dt) {
 //RENDER
 Button.prototype.render = function() 
 {
-    ctx.drawImage(Resources.get(this.sprite), this.col*this.constant, this.row*this.constant);
+    ctx.drawImage(Resources.get(this.sprite), this.col*this.x, this.row*this.y);
 };
 
 
 //GRAB
 Button.prototype.grab = function(row,col) {
-
    if(this.visible){
-
         if(!this.pressed){
             this.sprite = this.on;
             this.pressed = true;
@@ -45,16 +45,5 @@ Button.prototype.grab = function(row,col) {
             this.sprite = this.off;
             this.pressed = false;
         }
-
-    //VOLPAD close button
-    }else if(!selectrole.pressed && volpad.pressed && (this.name == "DA" || this.name == "REPLAY") ){
-        
-        volpad.sprite = volpad.off;
-        volpad.pressed = false;
-        volpad.visible=true;
-        da.visible = true;
-        replay.visible = true;
-        hs.visible = false;
-        hnd.visible = false;
     }
 };

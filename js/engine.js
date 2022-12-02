@@ -36,7 +36,7 @@ var Engine = (function(global) {
     //CLICK
     /*The TSP Screen is divided into rows an colums each one with a size of 65px
     we figure out wich part of the screen was clicked dividing the screen on 
-    12 colums and 9 rows.*/
+    12 colums and 9 rows.
     canvas.addEventListener("click",function(event)
     {
         var mouse = getMousePos(canvas,event);
@@ -62,28 +62,79 @@ var Engine = (function(global) {
         checkIfRadioPress(row, col);
         checkIfButtons(row, col);
     });
+    */
 
     //MOUSE UP
     //So far used for vol pad HS/HND controls
     canvas.addEventListener("mouseup",function(event)
     {
-        console.log("volpad");
         var mouse = getMousePos(canvas,event);
         var col = (mouse.x - mouse.x%65)/65;
         var row =  (mouse.y - mouse.y%65)/65;
+        var thincol = (mouse.x - mouse.x%22)/22;
+        var thinrow =  (mouse.y - mouse.y%22)/22;
+
+        console.log('col '+thincol+" "+'row '+thinrow);
 
         //Updates HS and HND on screen
-        if(volpad.pressed && hs.visible){
-
+        if(volpad.pressed){
             //HS column
-            if(col == hs.col && row > 0 && row < 7){
-               hs.row = row; 
+            if(col == hs.col && row > 1 && thinrow < 23){
+               hs.y = (1/hs.row)*mouse.y;
            }
             //HND column
-            if(col == hnd.col && row > 0 && row < 7){
-               hnd.row = row;
+            if(col == hnd.col && row > 1 && thinrow < 23){
+               hnd.y = (1/hnd.row)*mouse.y;
+              
            }
        }
+
+       //Updates vol on screen
+       var vols = [row1,row2,row3,row4,row5,row6,row7];
+       
+       if(volleftrow.pressed){
+
+        vols.forEach(function(vol){
+        if(row == vol.row && col > 1){
+                if(thincol > 12){
+                    vol.col = 4.2;
+                }else{
+                    vol.x = (1/vol.col)*mouse.x;
+                }  
+           }
+       });
+
+        }
+        if(volrightrow.pressed){
+
+        vols.forEach(function(vol){
+        if(row == vol.row && col > 3){
+                if(thincol > 19){
+                    vol.col = 6.2;
+                }else{
+                    vol.x = (1/vol.col)*mouse.x;
+                }  
+           }
+       });
+        }
+       //ENDCALL button expanded 1 square down
+        row = col == endcall.col && row == endcall.row+1 ? endcall.row: row ;
+    
+
+        //PTT button expanded one square to the left
+        if(col == ptt.col+1 && row == ptt.row){
+            col = ptt.col;
+        }
+
+        //SIMULATE button expanded one square to the left
+        if(col == simulate.col+1 && row == simulate.row){
+            col = simulate.col;
+        }
+
+            
+        //console.log( "columna: " + col + " fila: " + row);
+        checkIfRadioPress(row, col);
+        checkIfButtons(row, col);
     });
 
 
@@ -98,8 +149,13 @@ var Engine = (function(global) {
     }
 
     function Calculate(hour, min, sec){
+        
         var curTime;
-        hour = hour-4;
+        if(hour >= 20){
+            hour = hour - 24;
+        }
+        hour = hour + 4;
+        
         if(hour < 10)
         curTime = "0"+hour.toString();
         else
@@ -134,15 +190,42 @@ var Engine = (function(global) {
     function checkIfButtons(row, col){
 
         var RButtons = allButtons[0].buttons;
+        var extrabuttons = allButtons[1].extrabuttons;
+        var dialpadbuttons = allButtons[2].dialpadbuttons;
 
         RButtons.forEach(function(button) {
             if(button.row == row && button.col == col){
-                
-                if(typeof button.popup === "function"){
+                button.grab(row,col);
+                if(typeof button.popup === "function" && button.visible){
                     button.popup();
                 }
+                button.popupstoclose.forEach(function(funt){
+                    funt.close();
+                });
+            }
+        });
 
+        extrabuttons.forEach(function(button) {
+            if(button.row == row && button.col == col){
                 button.grab(row,col);
+                if(typeof button.popup === "function" && button.visible){
+                    button.popup();
+                }
+                button.popupstoclose.forEach(function(funt){
+                    funt.close();
+                });
+            }
+        });
+
+        dialpadbuttons.forEach(function(button) {
+            if(button.row == row && button.col == col){
+                button.grab(row,col);
+                if(typeof button.popup === "function" && button.visible){
+                    button.popup();
+                }
+                button.popupstoclose.forEach(function(funt){
+                    funt.close();
+                });
             }
         });
         //Saves PTT button status value to TSP.PTT
@@ -155,8 +238,8 @@ var Engine = (function(global) {
                 canvas.dispatchEvent(
                     new MouseEvent("click", 
                     {
-                        clientX: simulate.col*simulate.constant,
-                        clientY: simulate.row*simulate.constant,
+                        clientX: simulate.col*simulate.x,
+                        clientY: simulate.row*simulate.y,
                         bubbles: true
                     })
                 );
@@ -169,6 +252,30 @@ var Engine = (function(global) {
                 TSP.simulating = false;
             }
         }
+
+        //VOLPAD HS HND
+        if(volpad.pressed){
+            hs.visible=true;
+            hnd.visible = true;
+        }else{
+            hs.visible=false;
+            hnd.visible = false;
+        }
+
+        var vols = [row1,row2,row3,row4,row5,row6,row7];
+        
+        if(volleftrow.pressed){
+            vols.forEach(function(vol){vol.visible = true;vol.col = 3});
+        }
+        if(volrightrow.pressed){
+            vols.forEach(function(vol){vol.visible = true;vol.col = 5;});
+        }
+
+        if(!volrightrow.pressed && !volleftrow.pressed){
+            vols.forEach(function(vol){vol.visible = false;});
+        }
+
+
     }
 
     //ENVIROMENT
@@ -182,13 +289,31 @@ var Engine = (function(global) {
         allElements[0].radioChannels[5].onuse = true;
         allElements[0].radioChannels[11].onuse = true;
 
+        var vols = [row1,row2,row3,row4,row5,row6,row7];
+        vols.forEach(function(vol){vol.visible = false;});
+
         //HS/HND Enbiroment
         /*Change button position on screen and hides them*/
-        hs.constant = 68.1;
-        hnd.constant = 68.6;
+
+        for (let index = 0; index < 7; index++){
+            vols[index].y = vols[index].y + (10/(index+1));
+        }
+
+        hs.x = 68.5;
+        hnd.x = 68;
 
         hs.visible = false;
         hnd.visible = false
+    
+
+        row1.on = ''+row1.name+'.png';
+        row2.on = ''+row2.name+'.png';
+        row3.on = ''+row3.name+'.png';
+        row4.on = ''+row4.name+'.png';
+        row5.on = ''+row5.name+'.png';
+        row6.on = ''+row6.name+'.png';
+        row7.on = ''+row7.name+'.png';
+        
     }
 
     //MAIN
@@ -259,6 +384,14 @@ var Engine = (function(global) {
             button.update(dt);
             //button.grab();
         });
+        allButtons[1].extrabuttons.forEach(function(button) {
+            button.update(dt);
+            //button.grab();
+        });
+        allButtons[2].dialpadbuttons.forEach(function(button) {
+            button.update(dt);
+            //button.grab();
+        });
         TSP.update(dt);
 
     }
@@ -268,15 +401,21 @@ var Engine = (function(global) {
         Over();
 
         //Background
-        ctx.drawImage(Resources.get('tspBase.png'),0,0);
+        TSP.render();
 
         //Draw Radio Channels
         var radios = allElements[0].radioChannels;
         var RButtons = allButtons[0].buttons;
+        var extrabuttons = allButtons[1].extrabuttons;
+        var dialpadbuttons = allButtons[2].dialpadbuttons;
         ctx.fillStyle="black";
         ctx.font = "9pt impact"
         renderRadios(radios);
+        renderButtons(extrabuttons);
         renderButtons(RButtons);
+        renderButtons(dialpadbuttons);
+        
+        
         renderClock();
     }
 
@@ -298,46 +437,6 @@ var Engine = (function(global) {
                 if(typeof button.popuprender === "function" && button.pressed){
                     button.popuprender();
                 }
-
-                else if(button.name == "EXTRAFUNC" && button.pressed){
-                    TSP.extrafunc = true;
-                    button.sprite = 'EXTRAFUNCWINDOW.png';
-                    button.row = 7;
-                    button.col = 0;
-                    button.render();
-                    
-                    button.sprite = button.on;
-                    button.row = 8;
-                    button.col = 7;
-                    button.render();
-                
-                    for (var i = 0; i < 19; i++) {
-                        allButtons[0].buttons[i+3].visible = false;
-                    }
-                    allButtons[0].buttons[18].visible = true;
-                    allButtons[0].buttons[16].visible = true;
-                    allButtons[0].buttons[17].visible = true;
-
-                }
-                 else if((button.name == "LOCKSCREEN" || button.name == "POSMON") && allButtons[0].buttons[18].pressed && button.pressed){
-                    button.sprite = 'volumecontrol.png';
-                    button.row = 0;
-                    button.col = 2;
-                    button.render();
-                    
-                    button.sprite = button.on;
-                    if(button.name == "LOCKSCREEN"){
-                        button.row = 8;
-                        button.col = 5;
-                    }
-                    if(button.name == "POSMON"){
-                        button.row = 8;
-                        button.col = 6;
-                    }
-                    button.render();
-                    allButtons[0].buttons[7].visible = false;
-                }
-
             }
         });
     }
@@ -430,13 +529,82 @@ var Engine = (function(global) {
         'radioVolume11.png',
         'multiple.png',
         'dead.png',
-        'volumecontrol.png',
+        'VOL.png',
         'HS.png',
         'HND.png',
         'HSon.png',
         'HNDon.png',
         'SIMULATE.png',
         'SIMULATEon.png',
+        'DIAL.png',
+        'REPLAYWINDOW.png',
+        'CHIMEMULTI.png',
+        'CHIMEMULTIon.png',
+        "SIMULATE.png",
+        "ENDCALL.png",
+        "EXTRAFUNC.png",
+        "CHIMEMULTI.png",
+        "RADCONN.png",
+        "CROSSCONN.png",
+        "TELCONN.png",
+        "CALLPICKUP.png",
+        "MAINSTBY.png",
+        "VOLLEFTROW.png",
+        "VOLRIGHTROW.png",
+        "ROLEID.png",
+        "CHIMETEST.png",
+        "SELECTFREQ.png",
+        "BSS.png",
+        "BTS.png",
+        "BASEBTN.png",
+        "ENDCALLon.png",
+        "EXTRAFUNCon.png",
+        "CHIMEMULTIon.png",
+        "RADCONNon.png",
+        "CROSSCONNon.png",
+        "TELCONNon.png",
+        "CALLPICKUPon.png",
+        "MAINSTBYon.png",
+        "VOLLEFTROWon.png",
+        "VOLRIGHTROWon.png",
+        "ROLEIDon.png",
+        "CHIMETESTon.png",
+        "SELECTFREQon.png",
+        "BSSon.png",
+        "BTSon.png",
+        "BASEBTNon.png", 
+        "CRASHALARMon.png",
+        "CRASHALARM.png",
+        "PHONELISTWINDOW.png",
+        "LINE0.png",
+        "LINE0on.png",
+        "DIAL0.png",
+        "DIAL0on.png",
+        "DIAL1.png",
+        "DIAL1on.png",
+        "DIAL2.png",
+        "DIAL2on.png",
+        "DIAL3.png",
+        "DIAL3on.png",
+        "DIAL4.png",
+        "DIAL4on.png",
+        "DIAL5.png",
+        "DIAL5on.png",
+        "DIAL6.png",
+        "DIAL6on.png",
+        "DIAL7.png",
+        "DIAL7on.png",
+        "DIAL8.png",
+        "DIAL8on.png",
+        "DIAL9.png",
+        "DIAL9on.png",
+        "row1.png",
+        "row2.png",
+        "row3.png",
+        "row4.png",
+        "row5.png",
+        "row6.png",
+        "row7.png",
     ]);
     Resources.onReady(init);
 
