@@ -10,6 +10,8 @@ How to Start the game:
 -Open the index.html file using your web browser.
 -Thats it.
 
+-Or open this link https://rafaelogando.github.io/OPSimulator/
+
 =
 Game controls:
 
