@@ -14,6 +14,8 @@ var Engine = (function(global) {
      * set the canvas elements height/width and add it to the DOM.
      */
     var radio1sound = new Audio("sounds/121.5.mp3");
+    var chimetestsound = new Audio("sounds/chimetest.wav");
+    //var ringtone = new Audio("sounds/ringtone.mp3");
     radio1sound.loop = true;        
     radio1sound.volume = 0.3;
     var doc = global.document,
@@ -95,7 +97,8 @@ var Engine = (function(global) {
             if(col == hnd.col && row > 2 && thinrow < 25){
                hnd.y = (1/hnd.row)*mouse.y;
                if(hnd.y < 41.2){hnd.y = 41.2}
-              
+               
+               twr.sound.volume = line0.sound.volume = lineTimeout.volume = Math.abs(1 - mapNumRange(mouse.y,200,560,0.5,1));
            }
        }
 
@@ -239,30 +242,84 @@ var Engine = (function(global) {
                     }else{
                         endcall.pressed=true;
                     }
-                }
-                
-                if(button.name =="LINE0"){
-                    if(line0.pressed){
-                        endcall.pressed = false;
-                    }else{endcall.pressed = true; line0.sound.pause();}
-                 
-                    
-                   
-                    lineTimeout.pause();
-                    
-                    if(button.sound){
-                        if (button.pressed){button.sound.pause()}
-
-                        //Add sound after line tone timeout
-                        button.sound.onended= function() {myFunction()};
-
-                        function myFunction() {
-                            lineTimeout.loop = true;
-                            lineTimeout.play();
-                        }
+                    if(endcall.pressed){
+                        if(twr.pressed){twr.pressed = false; twr.sound.pause();}
+                    }else{
+                        endcall.pressed=true;
                     }
                     
                 }
+                
+                //LINE0
+                if(button.name =="LINE0" ){
+                    if(calldivert.pressed){
+                        button.pressed=true;
+                        button.sound.pause();
+                        calldivert.pressed = false;
+                        setTimeout(() => {
+                            window.alert("You cant call divert to this line");
+                        }, 100);
+                        
+                    }
+                        if(line0.pressed){
+                            endcall.pressed = false;
+                        }else{
+                            endcall.pressed = true;
+                             line0.sound.pause();
+                            }
+                   
+                        lineTimeout.pause();
+                    
+                        if(button.sound){
+                            if (button.pressed){
+                                button.sound.pause()
+                            }
+
+                            //Add sound after line tone timeout
+                            button.sound.onended= function() {myFunction()};
+
+                            function myFunction() {
+                                lineTimeout.loop = true;
+                                lineTimeout.play();
+                            }
+                        }
+                
+                    
+                }
+
+                //TWR
+                if(button.name =="TWR" ){
+                   if(calldivert.pressed){
+                    calldivert.pressed = undefined;
+                    calldivert.sprite = "CALLDIVERTTWR.png";
+                    twr.pressed = true;
+                    
+                   }
+                        if(twr.pressed){
+                            
+                            endcall.pressed = false;
+                        }else{
+                            endcall.pressed = true;
+                             line0.sound.pause();
+                            }
+                   
+                        if(button.sound){
+                            if (button.pressed){
+                                button.sound.pause()
+                            }
+
+                        }
+                
+                }
+
+                //CALL DIVERT
+                if(button.name == "CALLDIVERT"){
+                    if(button.sprite == "CALLDIVERTTWR.png"){
+                        calldivert.pressed = true;
+                    }
+                }
+
+                
                 
                 button.grab(row,col);
                 
@@ -282,7 +339,7 @@ var Engine = (function(global) {
 
         extrabuttons.forEach(function(button) {
             
-            if(button.row == row && button.col == col){
+            if(button.row == row && button.col == col && button.visible){
                 button.grab(row,col);
 
                 //ROLE ID
@@ -293,6 +350,20 @@ var Engine = (function(global) {
                         button.pressed = false;
                     },100)
                 }
+
+                //CHIME
+                if(button.name =="CHIMETEST"){
+                    if(!chime.pressed){
+                        chimetestsound.play();
+                    }else{window.alert("Chime is OFF");}
+                    
+                    setTimeout(function(){
+                        button.pressed = false;
+                    },100)
+                    
+                }
+
+                //POPUP
                 if(typeof button.popup === "function" && button.visible){
                     button.popup();
                 }
@@ -303,14 +374,14 @@ var Engine = (function(global) {
         });
 
         dialpadbuttons.forEach(function(button) {
-            if(button.row == row && button.col == col){
+            if(button.row == row && button.col == col && !hs.visible && !hnd.visible){
                 button.grab(row,col);
                 setTimeout(function(){
                     button.pressed = false;
                 },10)
                 //DIAL PAD
                 //Stop line sound when any dial key is pressed
-                line0.sound.pause()
+                line0.sound.pause();
             }
         });
         //Saves PTT button status value to TSP.PTT
@@ -705,7 +776,10 @@ var Engine = (function(global) {
         "audiolevelon.png",
         "roleiddisplay.png",
         "tsp.png",
-        "tester.png"
+        "tester.png",
+        "TWR.png",
+        "TWRon.png",
+        "CALLDIVERTTWR.png"
 
     ]);
     Resources.onReady(init);

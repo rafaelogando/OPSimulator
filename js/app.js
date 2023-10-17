@@ -122,6 +122,7 @@ var buttons =
 {name:"BSS", col:3, row:8, extrafunc:true},
 {name:"CRASHALARM", col:10, row:8, extrafunc:true},
 {name:"LINE0", col:4, row:1, soundsource:"sounds/dtmf/LINE0.wav",test:"aa"}, //Si extrafunc = false entonces es un boton del dialpad
+{name:"TWR", col:5, row:1, soundsource:"sounds/twr.mp3"},
 {name:"DIAL1", col:4, row:3,extrafunc:false,showtime:1},
 {name:"DIAL2", col:5, row:3,extrafunc:false,showtime:1},
 {name:"DIAL3", col:6, row:3,extrafunc:false,showtime:1},

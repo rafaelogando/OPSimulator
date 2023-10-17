@@ -94,7 +94,7 @@ function createPopups(){
     
 
     aplypop(volpad, [split,lockscreen], 'VOLPADWINDOW.png',5,2);
-    volpad.buttonstocover = [da,replay,split,lockscreen,line0];
+    volpad.buttonstocover = [da,replay,split,lockscreen,line0,twr];
 
     aplypop(dialpad,[da,replay], 'DIAL.png',5,3);
     dialpad.buttonstocover = [da,replay,chime,calldivert];

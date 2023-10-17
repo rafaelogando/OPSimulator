@@ -9,6 +9,7 @@ var Button = function(name) {
     this.visible = true;
     this.blink = false;
     this.x = this.y = 66;
+    
     this.on = ''+name.name+'on.png';
     this.off = ''+name.name+'.png';
     this.sprite = ''+name.name+'.png';
@@ -52,6 +53,9 @@ Button.prototype.grab = function(row,col) {
                 this.sound.play();
             }
         }
+        if(this.pressed ==undefined)
+        {
+            this.sprite = this.trd;}
     }
     }
 };
