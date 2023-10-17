@@ -31,6 +31,7 @@ function createPopups(){
             name+ '.close = function close(){'+
             'if('+name+'.pressed){'+
                 'buttonstocover(false,'+name+'.buttonstocover);'+
+                'buttonstoshow(false,'+name+'.buttonstoshow);'+
                 name+'.pressed = false;}'+
             '}')
     }
@@ -87,33 +88,34 @@ function createPopups(){
         render(basebutton,image,col,row);
     }
 
-    aplypop(selectrole,[xfer,conf],'ROLEWINDOW.png',4,1)
+    aplypop(selectrole,[xfer,conf],'ROLEWINDOW.png',5,2)
     let copy = allButtons[0].buttons;
-    selectrole.buttonstocover = copy.slice(3,16).concat(extrafunc);
+    selectrole.buttonstocover = copy.slice(3,16).concat(extrafunc,line0,audiolevel);
     
 
-    aplypop(volpad, [split,lockscreen], 'VOLPADWINDOW.png',4,1);
+    aplypop(volpad, [split,lockscreen], 'VOLPADWINDOW.png',5,2);
     volpad.buttonstocover = [da,replay,split,lockscreen,line0];
 
-    aplypop(dialpad,[da,replay], 'DIAL.png',4,2);
+    aplypop(dialpad,[da,replay], 'DIAL.png',5,3);
     dialpad.buttonstocover = [da,replay,chime,calldivert];
     dialpad.buttonstoshow = allButtons[2].dialpadbuttons;
 
-    aplypop(replay,[conf],'REPLAYWINDOW.png',4,1);
+    aplypop(replay,[conf],'REPLAYWINDOW.png',5,2);
     replay.buttonstocover = copy.slice(9,20).concat(extrafunc,chime,calldivert,prio,ic,line0);
 
     aplypop(extrafunc,[],'EXTRAFUNCon.png',extrafunc.col,extrafunc.row);
-    extrafunc.buttonstocover = allButtons[0].buttons.slice(3,20).concat(da);
+    extrafunc.buttonstocover = [replay, chime,calldivert,prio,ic,split,lockscreen,posmon,hold,conf,xfer,onchannel,couple, freqlock,loudspeaker];
     extrafunc.buttonstoshow = allButtons[1].extrabuttons;
 
-    aplypop(phonelist,[conf],'PHONELISTWINDOW.png',4,1);
-    phonelist.buttonstocover = copy.slice(7,12).concat(extrafunc).concat(copy.slice(14,20));
+    aplypop(phonelist,[conf],'PHONELISTWINDOW.png',5,2);
+    phonelist.buttonstocover = [extrafunc,split,lockscreen,posmon,hold,xfer,conf,line0];
 
-    aplypop(volleftrow,[bts,bss,mainstby],'VOL.png',2,1);
-    volleftrow.buttonstocover = [bts,bss,mainstby,line0];
+    aplypop(volleftrow,[bts,bss,mainstby],'VOL.png',3,2);
+    volleftrow.buttonstocover = [bts,bss,mainstby,line0,da];
 
-    aplypop(volrightrow,[mainstby,volleftrow],'VOL.png',4,1);
-    volrightrow.buttonstocover = [mainstby,volleftrow,line0];
+    aplypop(volrightrow,[mainstby,volleftrow],'VOL.png',5,2);
+    volrightrow.buttonstocover = [mainstby,volleftrow,line0,da];
+
 }
 
 

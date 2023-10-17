@@ -13,14 +13,19 @@ var Engine = (function(global) {
      * create the canvas element, grab the 2D context for that canvas
      * set the canvas elements height/width and add it to the DOM.
      */
+    var radio1sound = new Audio("sounds/121.5.mp3");
+    radio1sound.loop = true;        
+    radio1sound.volume = 0.3;
     var doc = global.document,
         win = global.window,
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         lastTime;
 
-        canvas.width = 800;
-        canvas.height = 665;
+        const mapNumRange = (num, inMin, inMax, outMin, outMax) =>
+        ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+        canvas.width = 927;
+        canvas.height = 730;
         
         doc.body.appendChild(canvas);
 
@@ -74,17 +79,22 @@ var Engine = (function(global) {
         var thincol = (mouse.x - mouse.x%22)/22;
         var thinrow =  (mouse.y - mouse.y%22)/22;
 
-        console.log('col '+thincol+" "+'row '+thinrow);
+        console.log('col '+col+" "+'row '+row);
 
         //Updates HS and HND on screen
         if(volpad.pressed){
             //HS column
-            if(col == hs.col && row > 1 && thinrow < 23){
+            if(col == hs.col && thinrow > 8 && thinrow < 25){
+                
                hs.y = (1/hs.row)*mouse.y;
+               if(hs.y < 41.2){hs.y = 41.2}
+               console.log(hs.y);
+               radio1sound.volume = Math.abs(1 - mapNumRange(mouse.y,200,560,0.5,1));
            }
             //HND column
-            if(col == hnd.col && row > 1 && thinrow < 23){
+            if(col == hnd.col && row > 2 && thinrow < 25){
                hnd.y = (1/hnd.row)*mouse.y;
+               if(hnd.y < 41.2){hnd.y = 41.2}
               
            }
        }
@@ -178,11 +188,25 @@ var Engine = (function(global) {
     /*Checks if a channel button has been pressed*/
     function checkIfRadioPress(row, col){
         var radios = allElements[0].radioChannels;
-        if(col < 4 && row > 0 && row < 8){
-            radios.forEach(function(radioChannel) {
-                radioChannel.grab(row,col);  
-            });
-        }
+
+            radios.forEach(function(radioChannel){
+                if(!lockscreen.pressed && !freqlock.pressed && radioChannel.row == row-1 && radioChannel.col == col |radioChannel.col+1 == col){
+                    radioChannel.grab(row,col); 
+                    if(radioChannel.name == 'radio1'){
+                       if(radioChannel.sprite =="BASERX.png" | radioChannel.sprite =="BASETX.png"){
+                        radio1sound.play(); 
+                       }else{radio1sound.pause();console.log("pausing")}
+                       
+                       console.log(radioChannel.sprite)
+                       
+                    }
+                    console.log(radioChannel.name);
+                
+                    
+                }
+            })
+        
+        
     }
 
     //BUTTONS
@@ -194,8 +218,54 @@ var Engine = (function(global) {
         var dialpadbuttons = allButtons[2].dialpadbuttons;
 
         RButtons.forEach(function(button) {
-            if(button.row == row && button.col == col){
+            if( !lockscreen.pressed && button.row == row && button.col == col){
+
+                //DA PAGES
+                if(button.name == "DA"){
+                   if(button.pressed){
+                    button.pressed = undefined;button.sprite="lastpage.png";
+                   }
+                   else if(button.pressed == undefined){
+                    console.log("undefin")
+                    button.pressed = true;
+                   }
+                }
+
+                //END CALL
+                if(button.name == "ENDCALL"){
+                   
+                    if(endcall.pressed){
+                        if(line0.pressed){line0.pressed = false; line0.sound.pause();}
+                    }else{
+                        endcall.pressed=true;
+                    }
+                }
+                
+                if(button.name =="LINE0"){
+                    if(line0.pressed){
+                        endcall.pressed = false;
+                    }else{endcall.pressed = true; line0.sound.pause();}
+                 
+                    
+                   
+                    lineTimeout.pause();
+                    
+                    if(button.sound){
+                        if (button.pressed){button.sound.pause()}
+
+                        //Add sound after line tone timeout
+                        button.sound.onended= function() {myFunction()};
+
+                        function myFunction() {
+                            lineTimeout.loop = true;
+                            lineTimeout.play();
+                        }
+                    }
+                    
+                }
+                
                 button.grab(row,col);
+                
                 if(typeof button.popup === "function" && button.visible){
                     button.popup();
                 }
@@ -203,11 +273,26 @@ var Engine = (function(global) {
                     funt.close();
                 });
             }
+            else{
+                if(button == allButtons[0].buttons[11] && button.row == row && button.col == col){
+                    button.grab(row,col);
+                }
+            }
         });
 
         extrabuttons.forEach(function(button) {
+            
             if(button.row == row && button.col == col){
                 button.grab(row,col);
+
+                //ROLE ID
+                if(button.name == "ROLEID"){
+                    audiolevel.pressed ? audiolevel.pressed = false : audiolevel.pressed = true;
+            
+                    setTimeout(function(){
+                        button.pressed = false;
+                    },100)
+                }
                 if(typeof button.popup === "function" && button.visible){
                     button.popup();
                 }
@@ -220,12 +305,12 @@ var Engine = (function(global) {
         dialpadbuttons.forEach(function(button) {
             if(button.row == row && button.col == col){
                 button.grab(row,col);
-                if(typeof button.popup === "function" && button.visible){
-                    button.popup();
-                }
-                button.popupstoclose.forEach(function(funt){
-                    funt.close();
-                });
+                setTimeout(function(){
+                    button.pressed = false;
+                },10)
+                //DIAL PAD
+                //Stop line sound when any dial key is pressed
+                line0.sound.pause()
             }
         });
         //Saves PTT button status value to TSP.PTT
@@ -352,6 +437,16 @@ var Engine = (function(global) {
      * particularly setting the lastTime variable that is required.*/
     function init() {
         reset();
+
+        // Audio files
+        
+        this.lineTone = new Audio("sounds/dialTone.wav");
+        this.lineTimeout = new Audio("sounds/linetimeout.mp3")
+        this.lineTimeout.volume=1;
+        this.lineTone.volume =1;
+
+        this.lineTone.load();
+
         lastTime = Date.now();
         main();
         createAllButtons();
@@ -427,7 +522,7 @@ var Engine = (function(global) {
         
         //CLOCK
         ctx.font = "40pt calibri";
-        ctx.fillText(str, 30, 50);
+        ctx.fillText(str, 30+65, 50+65);
     }
 
     function renderButtons(Rbuttons){
@@ -605,6 +700,13 @@ var Engine = (function(global) {
         "row5.png",
         "row6.png",
         "row7.png",
+        "lastpage.png",
+        "audiolevel.png",
+        "audiolevelon.png",
+        "roleiddisplay.png",
+        "tsp.png",
+        "tester.png"
+
     ]);
     Resources.onReady(init);
 
