@@ -108,8 +108,8 @@ var Engine = (function(global) {
        if(volleftrow.pressed){
 
         vols.forEach(function(vol){
-        if(row == vol.row && col > 1){
-                if(thincol > 12){
+        if(row == vol.row && col > 2){
+                if(thincol > 15){
                     vol.col = 4.2;
                 }else{
                     vol.x = (1/vol.col)*mouse.x;
@@ -121,8 +121,8 @@ var Engine = (function(global) {
         if(volrightrow.pressed){
 
         vols.forEach(function(vol){
-        if(row == vol.row && col > 3){
-                if(thincol > 19){
+        if(row == vol.row && thincol > 14){
+                if(thincol > 21){
                     vol.col = 6.2;
                 }else{
                     vol.x = (1/vol.col)*mouse.x;
@@ -363,6 +363,7 @@ var Engine = (function(global) {
                     
                 }
 
+              
                 //POPUP
                 if(typeof button.popup === "function" && button.visible){
                     button.popup();

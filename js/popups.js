@@ -111,10 +111,10 @@ function createPopups(){
     phonelist.buttonstocover = [extrafunc,split,lockscreen,posmon,hold,xfer,conf,line0];
 
     aplypop(volleftrow,[bts,bss,mainstby],'VOL.png',3,2);
-    volleftrow.buttonstocover = [bts,bss,mainstby,line0,da];
+    volleftrow.buttonstocover = [bts,bss,mainstby,line0,da,twr];
 
     aplypop(volrightrow,[mainstby,volleftrow],'VOL.png',5,2);
-    volrightrow.buttonstocover = [mainstby,volleftrow,line0,da];
+    volrightrow.buttonstocover = [mainstby,volleftrow,line0,da,twr];
 
 }
 
