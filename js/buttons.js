@@ -53,9 +53,7 @@ Button.prototype.grab = function(row,col) {
                 this.sound.play();
             }
         }
-        if(this.pressed ==undefined)
-        {
-            this.sprite = this.trd;}
+        
     }
     }
 };
@@ -143,7 +141,7 @@ radioChannel.prototype.update = function(dt)
     if(this.selected && this.toDrawOver.hollow.status && this.activePTT && TSP.PTT){
         window.alert("You shoud not PTT while a Channel is been used.");
         TSP.PTT = false;
-        ptt.sprite = ptt.off;
+        ptt.pressed = false;
         TSP.PTTSRC ='ptt.png';
     }
 

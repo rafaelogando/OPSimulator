@@ -331,7 +331,7 @@ var Engine = (function(global) {
                 });
             }
             else{
-                if(button == allButtons[0].buttons[11] && button.row == row && button.col == col){
+                if(button == lockscreen && button.row == row && button.col == col){
                     button.grab(row,col);
                 }
             }
@@ -339,7 +339,7 @@ var Engine = (function(global) {
 
         extrabuttons.forEach(function(button) {
             
-            if(button.row == row && button.col == col && button.visible){
+            if(button.row == row && button.col == col ){
                 button.grab(row,col);
 
                 //ROLE ID
@@ -352,7 +352,7 @@ var Engine = (function(global) {
                 }
 
                 //CHIME
-                if(button.name =="CHIMETEST"){
+                if(button.name =="CHIMETEST" && !xfer.visible){
                     if(!chime.pressed){
                         chimetestsound.play();
                     }else{window.alert("Chime is OFF");}
