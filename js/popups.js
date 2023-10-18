@@ -38,6 +38,7 @@ function createPopups(){
 
     function buttonstocover(bol, buttonstocove){
         buttonstocove.forEach(function(button){
+            
             if(!bol){
                 button.visible = true;
             }
@@ -89,7 +90,7 @@ function createPopups(){
     }
 
     aplypop(selectrole,[xfer,conf],'ROLEWINDOW.png',5,2)
-    let copy = allButtons[0].buttons;
+    let copy = allButtons.buttons;
     selectrole.buttonstocover = copy.slice(3,16).concat(extrafunc,line0,audiolevel,twr);
     
 
@@ -97,15 +98,15 @@ function createPopups(){
     volpad.buttonstocover = [da,replay,split,lockscreen,line0,twr];
 
     aplypop(dialpad,[da,replay], 'DIAL.png',5,3);
-    dialpad.buttonstocover = [da,replay,chime,calldivert];
-    dialpad.buttonstoshow = allButtons[2].dialpadbuttons;
+    dialpad.buttonstocover = [da,replay,chime,calldivert,chimemulti, radconn,crossconn];
+    dialpad.buttonstoshow = allButtons.dialpadbuttons;
 
     aplypop(replay,[conf],'REPLAYWINDOW.png',5,2);
     replay.buttonstocover = copy.slice(9,20).concat(extrafunc,chime,calldivert,prio,ic,line0,twr);
 
     aplypop(extrafunc,[],'EXTRAFUNCon.png',extrafunc.col,extrafunc.row);
     extrafunc.buttonstocover = [replay, chime,calldivert,prio,ic,split,lockscreen,posmon,hold,conf,xfer,onchannel,couple, freqlock,loudspeaker];
-    extrafunc.buttonstoshow = allButtons[1].extrabuttons;
+    extrafunc.buttonstoshow = allButtons.extrabuttons;
 
     aplypop(phonelist,[conf],'PHONELISTWINDOW.png',5,2);
     phonelist.buttonstocover = [extrafunc,split,lockscreen,posmon,hold,xfer,conf,line0,twr];

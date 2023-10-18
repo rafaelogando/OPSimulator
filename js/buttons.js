@@ -1,3 +1,6 @@
+//MAP Numbers
+const mapNumRange = (num, inMin, inMax, outMin, outMax) =>
+((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 
 //BUTTON
 /*Buttons used on the TSP*/
@@ -73,12 +76,16 @@ var chIcons =
     downarrow:{src:'downarrow.png',positionx:20,positiony:30},
     frecuency:{src:'',positionx:38,positiony:20},
     uparrow: {src:'uparrow.png',positionx:75,positiony:30},
+    doubleuparrow: {src:'doubleuparrow.png',positionx:75,positiony:20},
+    singleuparrow: {src:'singleuparrow.png',positionx:75,positiony:20},
 }
 
 //RADIO CHANNELS
 /* Radio Channel our TSP must have*/
 var radioChannel =  function(radio) {
     this.name = radio.name;
+    this.coupled=false;
+    this.forecoupled = false;
     this.onuse = false;                             //Indicates channel been selected in a diferent position
     this.selected = false;                          //Active when channel TX has been selected
     this.activePTT = false;                         //Channel has an active PTT signal
@@ -99,7 +106,10 @@ var radioChannel =  function(radio) {
     hollow:{status:false},
     downarrow:{status:false},
     frecuency:{status:true},
-    uparrow: {status:false}
+    uparrow: {status:false},
+    doubleuparrow: {status:false},
+    singleuparrow: {status:false},
+    
     };
 };
 
@@ -118,6 +128,14 @@ radioChannel.prototype.update = function(dt)
     }
     else{
         this.toDrawOver.onuse.status = false;
+    }
+
+    //SINGLE UP ARROW
+    if(this.forecoupled){
+        this.toDrawOver.singleuparrow.status = true;
+    }
+    else{
+        this.toDrawOver.singleuparrow.status = false;
     }
 
     //DOWN ARROW

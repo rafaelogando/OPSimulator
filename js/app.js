@@ -2,37 +2,19 @@
 // Place the MAINSCREEN object in a variable called TSP
 var TSP = new MAINSCREEN();
 
+var allButtons = {buttons:[],extrabuttons:[],dialpadbuttons:[],radioChannels:[]};
+
 //ALL RADIOS
 /*Create all Channels to be used on the TSP
 Place all radioChannel objects in an array called allElements*/
-var allElements =[{radioChannels:[]}];
-var frequencies = 
 
-[
-    {name:"radio1",frecuency:"124.300 LON",row:1,col:1},
-    {name:"radio2",frecuency:"124.600 LON",row:2,col:1},
-    {name:"radio3",frecuency:"124.800 LON",row:3,col:1},
-    {name:"radio4",frecuency:"126.900 LON",row:4,col:1},
-    {name:"radio5",frecuency:"121.500 LON",row:5,col:1},
-    {name:"radio6",frecuency:"119.300 LON",row:6,col:1},
-    {name:"radio7",frecuency:"123.100 LON",row:7,col:1},
-    {name:"radio8",frecuency:"124.300 REN",row:1,col:3},
-    {name:"radio9",frecuency:"124.600 REN",row:2,col:3},
-    {name:"radio10",frecuency:"124.800 REN",row:3,col:3},
-    {name:"radio11",frecuency:"126.900 REN",row:4,col:3},
-    {name:"radio12",frecuency:"119.750 REN",row:5,col:3},
-    {name:"radio13",frecuency:"119.000 REN",row:6,col:3},
-    {name:"radio14",frecuency:"123.100 REN",row:7,col:3}]
-;
 
 frequencies.forEach(radio => {
     var rad = new radioChannel(radio);
-    allElements[0].radioChannels.push(rad);
+    allButtons.radioChannels.push(rad);
 
     window[radio.name.toLowerCase()] = rad;
 });
-
-
 
 //ALL BUTTONS
 /*Create all button to be used on the TSP*/
@@ -46,19 +28,19 @@ function createAllButtons(){
             if(newbutton.soundsource){
                 newbutton.sound = new Audio(newbutton.soundsource);
             }
-            allButtons[0].buttons.push(newbutton);
+            allButtons.buttons.push(newbutton);
         }
         else{
                 if(button.extrafunc){
                     newbutton.visible = false;
-                    allButtons[1].extrabuttons.push(newbutton);
+                    allButtons.extrabuttons.push(newbutton);
             
                 }
                 if(!button.extrafunc){
                     newbutton.visible = false;
                     newbutton.soundsource = "sounds/dtmf/"+newbutton.name+".wav";
                     newbutton.sound = new Audio(newbutton.soundsource);
-                    allButtons[2].dialpadbuttons.push(newbutton);
+                    allButtons.dialpadbuttons.push(newbutton);
                 }
             }
         
@@ -67,89 +49,391 @@ function createAllButtons(){
     });
 }
 
+function Calculate(hour, min, sec){
+        
+    var curTime;
+    if(hour >= 20){
+        hour = hour - 24;
+    }
+    hour = hour + 4;
+    
+    if(hour < 10)
+    curTime = "0"+hour.toString();
+    else
+    curTime = hour.toString();
 
-var allvar = [];
-var allButtons = [{buttons:[]},{extrabuttons:[]},{dialpadbuttons:[]}];
-var buttons = 
-[
-{name:"VOLPAD", col:4, row:0},
-{name:"SELECTROLE", col:11, row:0},
-{name:"DIALPAD", col:11, row:6},
-{name:"DA", col:4, row:7, lastpage:"lastpage.png"},
-{name:"REPLAY", col:5, row:7},
-{name:"CHIME", col:6, row:7},
-{name:"CALLDIVERT", col:7, row:7},
-{name:"PRIO", col:8, row:7},
-{name:"IC", col:9, row:7},
-{name:"PHONELIST", col:10, row:7},
-{name:"SPLIT", col:4, row:8},
-{name:"LOCKSCREEN", col:5, row:8},
-{name:"POSMON", col:6, row:8},
-{name:"HOLD", col:8, row:8},
-{name:"XFER", col:9, row:8},
-{name:"CONF", col:10, row:8},
-{name:"LOUDSPEAKER", col:0, row:8},
-{name:"FREQLOCK", col:1, row:8},
-{name:"COUPLE", col:2, row:8},
-{name:"ONCHANNEL", col:3, row:8},
-{name:"row1", col:3, row:1},
-{name:"row2", col:3, row:2},
-{name:"row3", col:3, row:3},
-{name:"row4", col:3, row:4},
-{name:"row5", col:3, row:5},
-{name:"row6", col:3, row:6},
-{name:"row7", col:3, row:7},
-{name:"HS", col:4, row:4},
-{name:"HND", col:5, row:4},
-{name:"PTT", col:0, row:9},
-{name:"SIMULATE", col:10, row:9},
-{name:"ENDCALL", col:11, row:7},
-{name:"EXTRAFUNC", col:7, row:8},
-{name:"audiolevel", col:5, row:0},
-{name:"CHIMEMULTI", col:5, row:7, extrafunc:true},
-{name:"RADCONN", col:6, row:7, extrafunc:true},
-{name:"CROSSCONN", col:7, row:7, extrafunc:true},
-{name:"TELCONN", col:8, row:7, extrafunc:true},
-{name:"CALLPICKUP", col:9, row:7, extrafunc:true},
-{name:"MAINSTBY", col:4, row:8, extrafunc:true},
-{name:"VOLLEFTROW", col:5, row:8, extrafunc:true},
-{name:"VOLRIGHTROW", col:6, row:8, extrafunc:true},
-{name:"ROLEID", col:8, row:8, extrafunc:true},
-{name:"CHIMETEST", col:9, row:8, extrafunc:true},
-{name:"SELECTFREQ", col:0, row:8, extrafunc:true},
-{name:"BASEBTN", col:1, row:8, extrafunc:true},
-{name:"BTS", col:2, row:8, extrafunc:true},
-{name:"BSS", col:3, row:8, extrafunc:true},
-{name:"CRASHALARM", col:10, row:8, extrafunc:true},
-{name:"LINE0", col:4, row:1, soundsource:"sounds/dtmf/LINE0.wav",test:"aa"}, //Si extrafunc = false entonces es un boton del dialpad
-{name:"TWR", col:5, row:1, soundsource:"sounds/twr.mp3"},
-{name:"DIAL1", col:4, row:3,extrafunc:false,showtime:1},
-{name:"DIAL2", col:5, row:3,extrafunc:false,showtime:1},
-{name:"DIAL3", col:6, row:3,extrafunc:false,showtime:1},
-{name:"DIAL4", col:4, row:4,extrafunc:false,showtime:1},
-{name:"DIAL5", col:5, row:4,extrafunc:false,showtime:1},
-{name:"DIAL6", col:6, row:4,extrafunc:false,showtime:1},
-{name:"DIAL7", col:4, row:5,extrafunc:false,showtime:1},
-{name:"DIAL8", col:5, row:5,extrafunc:false,showtime:1},
-{name:"DIAL9", col:6, row:5,extrafunc:false,showtime:1},
-{name:"DIAL0", col:5, row:6,extrafunc:false,showtime:1},
-];
+    if(min < 10)
+    curTime += ":0"+min.toString();
+    else
+    curTime += ":"+min.toString();
+
+    if(sec < 10)
+    curTime += ":0"+sec.toString();
+    else
+    curTime += ":"+sec.toString();
+    return curTime;
+}
+
+  //MOUSE
+/*Get the mouse position relative to the canvas
+,not just to the screen, and return the X and Y position.*/
+function getMousePos(canvas, evt)
+{
+    var rect = canvas.getBoundingClientRect();
+    return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
+}
+
+//CLOCK
+/*Display a 24H format clock on the screen*/
+
+function getClock(){
+
+    d = new Date();
+    str = Calculate(d.getHours(), d.getMinutes(), d.getSeconds());
+}
+
+//BUTTONS
+    /*Checks if a button has been pressed*/
+    function checkIfButtons(row, col){
+        //ENDCALL button expanded 1 square down
+        row = col == endcall.col && row == endcall.row+1 ? endcall.row: row ;
+    
+
+        //PTT button expanded one square to the left
+        if(col == ptt.col+1 && row == ptt.row){
+            col = ptt.col;
+        }
+
+        //SIMULATE button expanded one square to the left
+        if(col == simulate.col+1 && row == simulate.row){
+            col = simulate.col;
+        }
+
+         //Updates HS and HND on screen
+         if(volpad.pressed){
+            //HS column
+            if(col == hs.col && thinrow > 8 && thinrow < 25){
+                
+               hs.y = (1/hs.row)*mouse.y;
+               if(hs.y < 41.2){hs.y = 41.2}
+               radio1sound.volume = Math.abs(1 - mapNumRange(mouse.y,200,560,0.5,1));
+               radio4sound.volume = Math.abs(1 - mapNumRange(mouse.y,200,560,0.5,1));
+           }
+            //HND column
+            if(col == hnd.col && row > 2 && thinrow < 25){
+               hnd.y = (1/hnd.row)*mouse.y;
+               if(hnd.y < 41.2){hnd.y = 41.2}
+               twr.sound.volume = line0.sound.volume = lineTimeout.volume = Math.abs(1 - mapNumRange(mouse.y,200,560,0.5,1));
+           }
+       }
+
+       //Updates vol on screen
+       var vols = [row1,row2,row3,row4,row5,row6,row7];
+       
+       if(volleftrow.pressed){
+
+        vols.forEach(function(vol){
+        if(row == vol.row && col > 2){
+                if(thincol > 15){
+                    vol.col = 4.2;
+                }else{
+                    vol.x = (1/vol.col)*mouse.x;
+                }  
+           }
+       });
+
+        }
+        if(volrightrow.pressed){
+
+        vols.forEach(function(vol){
+        if(row == vol.row && thincol > 14){
+                if(thincol > 21){
+                    vol.col = 6.2;
+                }else{
+                    vol.x = (1/vol.col)*mouse.x;
+                }  
+           }
+       });
+        }
+
+        var RButtons = allButtons.buttons;
+        var extrabuttons = allButtons.extrabuttons;
+        var dialpadbuttons = allButtons.dialpadbuttons;
+
+        RButtons.forEach(function(button) {
+            if( !lockscreen.pressed && button.row == row && button.col == col){
+
+                //DIAL PAD
+                if(button.name == "DIALPAD"){
+                    volpad.pressed ? volpad.close() : "volpad";
+                    replay.pressed ? replay.close() : "replay";
+                 }
+
+                 //VOLPAD
+                 if(button.name == "VOLPAD"){
+                    volleftrow.pressed ? volleftrow.close() : "replay";
+                    volrightrow.pressed ? volrightrow.close() : "volrightrow";
+                    replay.pressed ? replay.close() : "replay";
+                    dialpad.pressed ?  dialpad.close() :"dialpad";
+                    selectrole.pressed ?  selectrole.close() :"selectrole";
+                 }
+
+                 //SELECT ROLE
+                 if(button.name == "SELECTROLE"){
+                    volpad.pressed ? volpad.close() : "volpad";
+                 }
+
+                //DA PAGES
+                if(button.name == "DA"){
+                   if(button.pressed){
+                    line0.visible = false;
+                    twr.visible = false;
+                    button.pressed = undefined;button.sprite="lastpage.png";
+                   }
+                   else if(button.pressed == undefined){
+                    console.log("undefin")
+                    button.pressed = true;
+                    line0.visible = true;
+                    twr.visible = true;
+                   }else{
+                    line0.visible = false;
+                    twr.visible = false;
+                   }
+                }
+
+                //END CALL
+                if(button.name == "ENDCALL"){
+                   
+                    if(endcall.pressed){
+                        if(line0.pressed && line0.visible){line0.pressed = false; line0.sound.pause();}
+                    }else{
+                        
+                        endcall.pressed=true;
+                    }
+                    if(endcall.pressed){
+                        if(twr.pressed){twr.pressed = false; twr.sound.pause();}
+                    }else{
+                        endcall.pressed=true;
+                    }
+                    
+                }
+                
+                //LINE0
+                if(button.name =="LINE0" && line0.visible){
+                    if(calldivert.pressed){
+                        button.pressed=true;
+                        button.sound.pause();
+                        calldivert.pressed = false;
+                        setTimeout(() => {
+                            window.alert("You cant call divert to this line");
+                        }, 100);
+                        
+                    }
+
+                    if(posmon.pressed){
+                        button.pressed=true;
+                        button.sound.pause();
+                        posmon.pressed = false;
+                        setTimeout(() => {
+                            window.alert("You cant monitor a line");
+                        }, 100);
+                        
+                    }
+                        if(line0.pressed){
+                            endcall.pressed = false;
+                        }else{
+                            endcall.pressed = true;
+                             line0.sound.pause();
+                            }
+                   
+                        lineTimeout.pause();
+                    
+                        if(button.sound){
+                            if (button.pressed){
+                                button.sound.pause()
+                            }
+
+                            //Add sound after line tone timeout
+                            button.sound.onended= function() {myFunction()};
+
+                            function myFunction() {
+                                lineTimeout.loop = true;
+                                lineTimeout.play();
+                            }
+                        }
+                
+                    
+                }
+
+                //TWR
+                if(button.name =="TWR" && twr.visible){
+                   if(calldivert.pressed){
+                    calldivert.pressed = undefined;
+                    calldivert.sprite = "CALLDIVERTTWR.png";
+                    twr.pressed = true;
+                   }
+
+                   if(posmon.pressed){
+                   posmon.pressed = undefined;
+                   posmon.sprite = "POSMONTWR.png";
+                    twr.pressed = true;
+                   }
+
+                    if(twr.pressed){
+                        
+                        endcall.pressed = false;
+                    }else{
+                        endcall.pressed = true;
+                            line0.sound.pause();
+                        }
+                
+                    if(button.sound){
+                        if (button.pressed){
+                            button.sound.pause()
+                        }
+
+                    }
+                
+                }
+
+                //CALL DIVERT
+                if(button.name == "CALLDIVERT"){
+                    if(button.sprite == "CALLDIVERTTWR.png"){
+                        calldivert.pressed = true;
+                    }
+                }
+
+                //PIS MON
+                if(button.name == "POSMON"){
+                    if(button.sprite == "POSMONTWR.png"){
+                        posmon.pressed = true;
+                    }
+                }
+
+                
+                
+                button.grab(row,col);
+                
+                if(typeof button.popup === "function" && button.visible){
+                    button.popup();
+                }
+                button.popupstoclose.forEach(function(funt){
+                    funt.close();
+                });
+            }
+            else{
+                if(button == lockscreen && button.row == row && button.col == col){
+                    button.grab(row,col);
+                }
+            }
+        });
+
+        extrabuttons.forEach(function(button) {
+            
+            if(button.row == row && button.col == col ){
+                button.grab(row,col);
+
+                //VOL LEFT
+                if(button.name == "VOLLEFTROW"){
+                    volpad.pressed ? volpad.close() : "volpad";
+                    dialpad.pressed ? dialpad.close() : "dialpad";
+                 }
+
+                 //VOL LEFT
+                if(button.name == "VOLRIGHTROW"){
+                    volpad.pressed ? volpad.close() : "volpad";
+                    dialpad.pressed ? dialpad.close() : "dialpad";
+                 }
+
+                //ROLE ID
+                if(button.name == "ROLEID"){
+                    audiolevel.pressed ? audiolevel.pressed = false : audiolevel.pressed = true;
+            
+                    setTimeout(function(){
+                        button.pressed = false;
+                    },100)
+                }
+
+                //CHIME
+                if(button.name =="CHIMETEST" && !xfer.visible){
+                    if(!chime.pressed){
+                        chimetestsound.play();
+                    }else{window.alert("Chime is OFF");}
+                    
+                    setTimeout(function(){
+                        button.pressed = false;
+                    },100)
+                    
+                }
+
+              
+                //POPUP
+                if(typeof button.popup === "function" && button.visible){
+                    button.popup();
+                }
+                button.popupstoclose.forEach(function(funt){
+                    funt.close();
+                });
+            }
+        });
+
+        dialpadbuttons.forEach(function(button) {
+            if(button.row == row && button.col == col && !hs.visible && !hnd.visible){
+                button.grab(row,col);
+                setTimeout(function(){
+                    button.pressed = false;
+                },10)
+                //DIAL PAD
+                //Stop line sound when any dial key is pressed
+                line0.sound.pause();
+            }
+        });
+        //Saves PTT button status value to TSP.PTT
+        TSP.PTT = ptt.pressed;
+
+        //Check if the SIMULATE ATC button has been pressed
+        //if so then release the button and run the simulation
+        if(simulate.pressed){
+            setTimeout(function(){
+                canvas.dispatchEvent(
+                    new MouseEvent("click", 
+                    {
+                        clientX: simulate.col*simulate.x,
+                        clientY: simulate.row*simulate.y,
+                        bubbles: true
+                    })
+                );
+            },500);
+            if(!TSP.simulating){
+                TSP.simulate(true);
+                TSP.simulating = true;
+            }else{
+                TSP.simulate(false);
+                TSP.simulating = false;
+            }
+        }
+
+        //VOLPAD HS HND
+        if(volpad.pressed){
+            hs.visible=true;
+            hnd.visible = true;
+        }else{
+            hs.visible=false;
+            hnd.visible = false;
+        }
+
+        var vols = [row1,row2,row3,row4,row5,row6,row7];
+        if(volleftrow.pressed | volrightrow.pressed){freqlock.pressed = true;}
+        if(volleftrow.pressed){
+            vols.forEach(function(vol){vol.visible = true;vol.col = 3});
+        }
+        if(volrightrow.pressed){
+            vols.forEach(function(vol){vol.visible = true;vol.col = 5;});
+        }
+
+        if(!volrightrow.pressed && !volleftrow.pressed){
+            vols.forEach(function(vol){vol.visible = false;});
+        }
 
 
-
-
-
-//var allEntities = [new radioChannel(120),new radioChannel(140),new radioChannel(200),new radioChannel(250),new radioChannel(300)];
-
-// This listens for key presses and sends the keys to your
-// TSP.handleInput() method.
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
-
-    TSP.handleInput(allowedKeys[e.keyCode]);
-});
+    }

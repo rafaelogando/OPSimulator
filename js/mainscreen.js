@@ -52,6 +52,13 @@ MAINSCREEN.prototype.handleInput = function(key)
 //Resets the MAINSCREEN starting posiion.
 MAINSCREEN.prototype.reset = function()
 {
+    radio1sound.loop = true;      
+    radio1sound.volume = 0.3;
+    radio4sound.loop = true;      
+    radio4sound.volume = 0.3;
+    radio4sound.currentTime = 7;
+    lineTimeout.volume=0.7;
+    lineTone.volume =0.7;
 };
 
 //Sets the MAINSCREEN points status, resest its status and
@@ -67,24 +74,28 @@ MAINSCREEN.prototype.render = function() {
 
 
 MAINSCREEN.prototype.simulate = function(status) {
+    simulate.pressed=false;
     if(status){
-        allElements[0].radioChannels[0].SIMULATION = true;
-        allElements[0].radioChannels[1].SIMULATION = true;
-        allElements[0].radioChannels[4].SIMULATION = true;
-        allElements[0].radioChannels[6].SIMULATION = true;
-        allElements[0].radioChannels[7].SIMULATION = true;
+        allButtons.radioChannels[0].SIMULATION = true;
+        allButtons.radioChannels[1].SIMULATION = true;
+        allButtons.radioChannels[4].SIMULATION = true;
+        allButtons.radioChannels[6].SIMULATION = true;
+        allButtons.radioChannels[7].SIMULATION = true;
 
-        allElements[0].radioChannels[0].sprite = chparts.baseTx;
-        allElements[0].radioChannels[1].sprite = chparts.baseTx;
-        allElements[0].radioChannels[4].sprite = chparts.baseTx;
-        allElements[0].radioChannels[6].sprite = chparts.baseTx;
-        allElements[0].radioChannels[7].sprite = chparts.baseTx;
+        allButtons.radioChannels[0].sprite = chparts.baseTx;
+        allButtons.radioChannels[1].sprite = chparts.baseTx;
+        allButtons.radioChannels[4].sprite = chparts.baseTx;
+        allButtons.radioChannels[6].sprite = chparts.baseTx;
+        allButtons.radioChannels[7].sprite = chparts.baseTx;
     }else{
-        allElements[0].radioChannels[0].SIMULATION = false;
-        allElements[0].radioChannels[1].SIMULATION = false;
-        allElements[0].radioChannels[4].SIMULATION = false;
-        allElements[0].radioChannels[6].SIMULATION = false;
-        allElements[0].radioChannels[7].SIMULATION = false;
+        allButtons.radioChannels[0].SIMULATION = false;
+        allButtons.radioChannels[1].SIMULATION = false;
+        allButtons.radioChannels[4].SIMULATION = false;
+        allButtons.radioChannels[6].SIMULATION = false;
+        allButtons.radioChannels[7].SIMULATION = false;
+        
+
+
     }
     
 };
