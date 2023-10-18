@@ -47,6 +47,7 @@ function createAllButtons(){
         window[button.name.toLowerCase()] = newbutton;
         //eval("var " + button.name + " = 2");
     });
+    
 }
 
 function Calculate(hour, min, sec){
@@ -128,7 +129,6 @@ function getClock(){
        }
 
        //Updates vol on screen
-       var vols = [row1,row2,row3,row4,row5,row6,row7];
        
        if(volleftrow.pressed){
 
@@ -165,6 +165,11 @@ function getClock(){
 
                 //DIAL PAD
                 if(button.name == "DIALPAD"){
+                    if(button.pressed && extrafunc.pressed){
+                        setTimeout(() => {
+                            replay.visible = chime.visible = calldivert.visible = false; console.log(true)
+                        }, 10);
+                    }
                     volpad.pressed ? volpad.close() : "volpad";
                     replay.pressed ? replay.close() : "replay";
                  }
@@ -336,10 +341,10 @@ function getClock(){
                 //VOL LEFT
                 if(button.name == "VOLLEFTROW"){
                     volpad.pressed ? volpad.close() : "volpad";
-                    dialpad.pressed ? dialpad.close() : "dialpad";
+                    dialpad.pressed ? dialpad.close() : "dialpad";         
                  }
 
-                 //VOL LEFT
+                 //VOL RIGHT
                 if(button.name == "VOLRIGHTROW"){
                     volpad.pressed ? volpad.close() : "volpad";
                     dialpad.pressed ? dialpad.close() : "dialpad";
@@ -422,13 +427,13 @@ function getClock(){
             hnd.visible = false;
         }
 
-        var vols = [row1,row2,row3,row4,row5,row6,row7];
+        vols = [row1,row2,row3,row4,row5,row6,row7];
         if(volleftrow.pressed | volrightrow.pressed){freqlock.pressed = true;}
         if(volleftrow.pressed){
-            vols.forEach(function(vol){vol.visible = true;vol.col = 3});
+            vols.forEach(function(vol){vol.visible = true;vol.col = 4});
         }
         if(volrightrow.pressed){
-            vols.forEach(function(vol){vol.visible = true;vol.col = 5;});
+            vols.forEach(function(vol){vol.visible = true;vol.col = 6;});
         }
 
         if(!volrightrow.pressed && !volleftrow.pressed){

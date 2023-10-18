@@ -10,6 +10,7 @@ var col;
 var row;
 var d;
 var str;
+var vols;
 
 var frequencies = 
 [
